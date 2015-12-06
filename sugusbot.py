@@ -98,37 +98,6 @@ def main():
                 else:
                     send_text = u'De momento nadie come en Sugus'
 
-            if checkTypeAndTextStart(aText= actText, cText='/testingjoin', aType=actType, cType='private'):
-                rtext = actText.replace('/testingjoin','').replace(' ','')
-                if not rtext:
-                    send_text = u"Elige un evento /testingparticipants"
-                else:
-                    addTo(rtext, actUser)
-
-            if checkTypeAndTextStart(aText= actText, cText='/testingparticipants', aType=actType, cType='private'):
-                rtext = actText.replace('/testingparticipants','').replace(' ','')
-                if not rtext:
-                    send_text = show(u"Elige una de las listas:", listEvents(), [0])
-                else:
-                    if len(findByEvent(rtext)) == 0:
-                        send_text = u"No hay nadie en {}".format(rtext)
-                    else:
-                        send_text = show(u"Participantes en {}:".format(rtext), findByEvent(rtext), [2, 0])
-
-            if checkTypeAndTextStart(aText= actText, cText='/testingdisjoin', aType=actType, cType='private'):
-                rtext = actText.replace('/testingdisjoin','').replace(' ','')
-                send_text = removeFromEvent(rtext, actUser)
-
-            if checkTypeAndTextStart(aText= actText, cText='/testinghelp', aType=actType, cType='private'): #, aType=actType, cType='private'):
-                send_text = helpTesting()
-
-            if checkTypeAndTextStart(aText= actText, cText='/testingempty', aType=actType, cType='private'):
-                rtext = actText.replace('/testingempty','').replace(' ','')
-                if rtext != u'comida':
-                    send_text = emptyEvent(rtext, actUser)
-                else:
-                    send_text = u'No soy tonto, no voy a dejar que borres quien come hoy'
-
             if send_text != None:
                 sendMessages(send_text, chat_id)
             elif checkTypeAndTextStart(aType=actType, cType='private'):
@@ -180,13 +149,6 @@ def help():
     contain = [['/help', 'Ayuda'], ['/who',u'¿Quien hay en Sugus?'], ['/como',u'Yo como aquí']]
     contain = contain + [['/nocomo',u'Yo no como aquí'], ['/quiencome', u'¿Quien come aquí?']]
     contain = contain +[['/testinghelp', 'Ayuda testing']]
-    return show(header, contain, [0,1])
-
-def helpTesting():
-    header = u"Elige una de las opciones: "
-    contain = [['/testinghelp', 'Ayuda testing'], ['/testingjoin',u'Apuntarse a un evento']]
-    contain = contain + [['/testingdisjoin',u'Desapuntarse de un evento'], ['/testingparticipants', u'Listar una lista']]
-    contain = contain + [['/testingempty', u'Vaciar una lista']]
     return show(header, contain, [0,1])
 
 def getUpdates(LAST_UPDATE_ID, timeout = 30):
