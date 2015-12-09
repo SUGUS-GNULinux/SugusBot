@@ -196,6 +196,8 @@ def getUpdates(LAST_UPDATE_ID, timeout = 30):
         except telegram.TelegramError as error:
             if error.message == "Timed out":
                 print(u"Timed out! Retrying...")
+            elif error.message == "Bad Gateway":
+                    print("Bad gateway. Retrying...")
             else:
                 raise
         except urllib2.URLError as error:
