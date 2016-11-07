@@ -46,13 +46,12 @@ def main():
     # Discard old updates, sent before the bot was started
     num_discarded = 0
 
-
     # Get last update ID
     LAST_UPDATE_ID = None
 
     while True:
         updates = bot.getUpdates(LAST_UPDATE_ID, timeout=1, network_delay=2.0)
-        if updates is not None and len(updates) > 0:
+        if updates is not None and updates:
             num_discarded = num_discarded + len(updates)
             LAST_UPDATE_ID = updates[-1].update_id + 1
         else:
@@ -80,22 +79,23 @@ def main():
             if checkTypeAndTextStart(aText= actText, cText='/who', aType=actType, cType='private'):
                 who = getWho()
 
-                if len(who) == 0:
-                    send_text = u"Parece que no hay nadie... {}".format(telegram.Emoji.DISAPPOINTED_FACE.decode('utf-8'))
+                if not who:
+                    #changes in emojis in python3 telegram version
+                    send_text = u"Parece que no hay nadie... {}".format(telegram.Emoji.DISAPPOINTED_FACE)
                 else:
                     send_text = showList(u"Miembros en SUGUS:", who)
 
             if checkTypeAndTextStart(aText= actText, cText='/como', aType=actType, cType='private'):
-                send_text = addTo(u'comida', actUser)
+                send_text = addTo('comida', actUser)
 
             if checkTypeAndTextStart(aText= actText, cText='/nocomo', aType=actType, cType='private'):
-                send_text = removeFromEvent(u'comida', actUser)
+                send_text = removeFromEvent('comida', actUser)
 
             if checkTypeAndTextStart(aText= actText, cText='/quiencome', aType=actType, cType='private'):
                 if len(findByEvent('comida')) != 0:
                     send_text = showList(u"Hoy come en Sugus:", findByEvent('comida'), [2, 0])
                 else:
-                    send_text = u'De momento nadie come en Sugus'
+                    send_text = 'De momento nadie come en Sugus'
 
             if checkTypeAndTextStart(aText= actText, cText='/testingjoin', aType=actType, cType='private'):
                 rtext = actText.replace('/testingjoin','').replace(' ','')
@@ -235,24 +235,21 @@ def getWho():
     while True:
         try:
             url = 'http://sugus.eii.us.es/en_sugus.html'
-            html = urllib.urlopen(url).read()
+            #html = AssertionErrorurlopen(url).read()
+            html = urlopen(url).read()
             pq = PyQuery(html)
             break
         except:
             raise
 
     ul = pq('ul.usuarios > li')
+    who = [w.text() for w in ul.items() if w != "Parece que no hay nadie."]
 
-    who = []
-    ul.each(lambda w : who.append(ul.eq(w).text()))
-
-    who_filtered = [w for w in who if w != "Parece que no hay nadie."]
-
-    return who_filtered
+    return who
 
 def addTo(event, name):
 
-    if len(event) != 0 and len(event) != 0:
+    if event and name:
         c = conn.cursor()
         date = datetime.now().strftime("%d-%m-%y")
 
@@ -261,7 +258,7 @@ def addTo(event, name):
         c.close()
         result = name + ' añadido a ' + event
 
-    elif len(name) != 0:
+    elif name:
         result = "No tienes nombre de usuario o alias. \n Es necesario para poder añadirte a un evento"
     else:
         result = "No se ha podido añadir el usuario @" + name+ " a la lista " + name
