@@ -276,7 +276,7 @@ def findByEvent(event):
 
 def removeFromEvent(event, name):
 
-    if '@' + name in findByEvent(event):
+    if any([('@' + name) in i for i in findByEvent(event)]):
         c = conn.cursor()
 
         c.execute('delete from eventTable where event=? and name=?', (event, u'@' + name))
