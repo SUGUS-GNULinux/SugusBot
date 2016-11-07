@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import urllib
-import urllib2
+from urllib.request import urlopen
+from urllib.error import URLError
 import time
 from pyquery import PyQuery
 import telegram
@@ -16,15 +16,15 @@ import sqlite3
 from datetime import datetime
 
 
-TOKEN = None
+token = None
 conn = sqlite3.connect('sugusBotDB.db')
 
 
 with open('token', 'rb') as token_file:
-    TOKEN = str(token_file.readline()).replace('\n', '')
+    token = token_file.readline().decode('ascii')[:-1]
 
 # Create bot object
-bot = telegram.Bot(TOKEN)
+bot = telegram.Bot(token)
 
 
 def secInit():
@@ -38,8 +38,7 @@ def main():
     secInit()
 
     # UTF-8 console stuff thingies
-    UTF8Writer = codecs.getwriter('utf8')
-    sys.stdout = UTF8Writer(sys.stdout)
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
 
     # Init logging
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -124,17 +123,17 @@ def main():
 
             if checkTypeAndTextStart(aText= actText, cText='/testingempty', aType=actType, cType='private'):
                 rtext = actText.replace('/testingempty','').replace(' ','')
-                if rtext != u'comida':
+                if rtext != 'comida':
                     send_text = emptyEvent(rtext, actUser)
                 else:
-                    send_text = u'No soy tonto, no voy a dejar que borres quien come hoy'
+                    send_text = 'No soy tonto, no voy a dejar que borres quien come hoy'
 
             if send_text != None:
                 sendMessages(send_text, chat_id)
             elif checkTypeAndTextStart(aType=actType, cType='private'):
                 sendMessages(help(), chat_id)
             else:
-                print("Mensaje enviado y no publicado por: " + actUser )
+                print("Mensaje enviado y no publicado por: "+str(actUser))
 
             LAST_UPDATE_ID = update_id + 1
 
@@ -154,15 +153,16 @@ def checkTypeAndTextStart(aText = None, aUName = None, cText = None, aType = Non
     return result
 
 def showList(header, contains, positions = None):
-    result = u'{}'.format(header)
+    result = '{}'.format(header)
     if contains != None:
         for a in contains:
-            result = u'{}\n {}'.format(result, telegram.Emoji.SMALL_BLUE_DIAMOND.decode('utf-8'))
+            #changes in emojis in python3 telegram version
+            result = '{}\n {}'.format(result, telegram.Emoji.SMALL_BLUE_DIAMOND)
             if positions != None:
                 for i in positions:
-                    result = u'{} {} '.format(result, a[i])
+                    result = '{} {} '.format(result, a[i])
             else:
-                result = u'{} {} '.format(result, a[:])
+                result = '{} {} '.format(result, a[:])
     return result
 
 def periodicCheck():
@@ -195,15 +195,17 @@ def getUpdates(LAST_UPDATE_ID, timeout = 30):
             updates = bot.getUpdates(LAST_UPDATE_ID, timeout=timeout, network_delay=2.0)
         except telegram.TelegramError as error:
             if error.message == "Timed out":
-                print("Timed out! Retrying...")
+                print(u"Timed out! Retrying...")
             elif error.message == "Bad Gateway":
                     print("Bad gateway. Retrying...")
             else:
                 raise
-        except urllib2.URLError as error:
+
+        except URLError as error:
             print("URLError! Retrying...")
             time.sleep(1)
-        except:
+        except Exception as e:
+            print("Exception: " + e)
             print('Ignore errors')
             pass
         else:
@@ -214,17 +216,18 @@ def sendMessages(send_text, chat_id):
     while True:
         try:
             bot.sendMessage(chat_id=chat_id, text=send_text)
-            print("Mensaje enviado a id: " + chat_id)
+            print("Mensaje enviado a id: " + str(chat_id))
             break
         except telegram.TelegramError as error:
             if error.message == "Timed out":
                 print("Timed out! Retrying...")
             else:
                 print(error)
-        except urllib2.URLError as error:
+        except URLError as error:
             print("URLError! Retrying to send message...")
             time.sleep(1)
-        except:
+        except Exception as e:
+            print("Exception: " + e)
             print('Ignore exception')
             pass
 
