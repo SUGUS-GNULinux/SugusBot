@@ -313,4 +313,11 @@ def listEvents():
     return h
 
 if __name__ == '__main__':
-    main()
+    while True:
+        try:
+            main()
+        except Exception as e:
+            with open('log','w+') as file:
+                file.write(str(datetime.now().strftime("%d-%m-%y"))+"\n")
+                file.write(str(e))
+            pass
