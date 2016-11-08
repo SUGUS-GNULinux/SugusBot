@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import urllib
-import urllib2
+from urllib.request import urlopen
+from urllib.error import URLError
 import time
 from pyquery import PyQuery
 import telegram
@@ -16,15 +16,15 @@ import sqlite3
 from datetime import datetime
 
 
-TOKEN = None
+token = None
 conn = sqlite3.connect('sugusBotDB.db')
 
 
 with open('token', 'rb') as token_file:
-    TOKEN = str(token_file.readline()).replace('\n', '')
+    token = token_file.readline().decode('ascii')[:-1]
 
 # Create bot object
-bot = telegram.Bot(TOKEN)
+bot = telegram.Bot(token)
 
 
 def secInit():
@@ -38,8 +38,7 @@ def main():
     secInit()
 
     # UTF-8 console stuff thingies
-    UTF8Writer = codecs.getwriter('utf8')
-    sys.stdout = UTF8Writer(sys.stdout)
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
 
     # Init logging
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -47,13 +46,12 @@ def main():
     # Discard old updates, sent before the bot was started
     num_discarded = 0
 
-
     # Get last update ID
     LAST_UPDATE_ID = None
 
     while True:
         updates = bot.getUpdates(LAST_UPDATE_ID, timeout=1, network_delay=2.0)
-        if updates is not None and len(updates) > 0:
+        if updates is not None and updates:
             num_discarded = num_discarded + len(updates)
             LAST_UPDATE_ID = updates[-1].update_id + 1
         else:
@@ -81,29 +79,30 @@ def main():
             if checkTypeAndTextStart(aText= actText, cText='/who', aType=actType, cType='private'):
                 who = getWho()
 
-                if len(who) == 0:
-                    send_text = u"Parece que no hay nadie... {}".format(telegram.Emoji.DISAPPOINTED_FACE.decode('utf-8'))
+                if not who:
+                    #changes in emojis in python3 telegram version
+                    send_text = u"Parece que no hay nadie... {}".format(telegram.Emoji.DISAPPOINTED_FACE)
                 else:
-                    send_text = show(u"Miembros en SUGUS:", who)
+                    send_text = showList(u"Miembros en SUGUS:", who)
 
             if checkTypeAndTextStart(aText= actText, cText='/como', aType=actType, cType='private'):
-                send_text = addTo(u'comida', actUser)
+                send_text = addTo('comida', actUser)
 
             if checkTypeAndTextStart(aText= actText, cText='/nocomo', aType=actType, cType='private'):
-                send_text = removeFromEvent(u'comida', actUser)
+                send_text = removeFromEvent('comida', actUser)
 
             if checkTypeAndTextStart(aText= actText, cText='/quiencome', aType=actType, cType='private'):
                 if len(findByEvent('comida')) != 0:
-                    send_text = show(u"Hoy come en Sugus:", findByEvent('comida'), [2, 0])
+                    send_text = showList(u"Hoy come en Sugus:", findByEvent('comida'), [2, 0])
                 else:
-                    send_text = u'De momento nadie come en Sugus'
+                    send_text = 'De momento nadie come en Sugus'
 
             if send_text != None:
                 sendMessages(send_text, chat_id)
             elif checkTypeAndTextStart(aType=actType, cType='private'):
                 sendMessages(help(), chat_id)
             else:
-                print(u"Mensaje enviado y no publicado por:{}".format(actUser))
+                print("Mensaje enviado y no publicado por: "+str(actUser))
 
             LAST_UPDATE_ID = update_id + 1
 
@@ -122,16 +121,17 @@ def checkTypeAndTextStart(aText = None, aUName = None, cText = None, aType = Non
 
     return result
 
-def show(header, contains , positions = None):
-    result = u'{}'.format(header)
+def showList(header, contains, positions = None):
+    result = '{}'.format(header)
     if contains != None:
         for a in contains:
-            result = u'{}\n {}'.format(result, telegram.Emoji.SMALL_BLUE_DIAMOND.decode('utf-8'))
+            #changes in emojis in python3 telegram version
+            result = '{}\n {}'.format(result, telegram.Emoji.SMALL_BLUE_DIAMOND)
             if positions != None:
                 for i in positions:
-                    result = u'{} {} '.format(result, a[i])
+                    result = '{} {} '.format(result, a[i])
             else:
-                result = u'{} {} '.format(result, a[:])
+                result = '{} {} '.format(result, a[:])
     return result
 
 def periodicCheck():
@@ -145,11 +145,10 @@ def periodicCheck():
             removeFromEvent('comida', a[2][1:])
 
 def help():
-    header = u"Elige una de las opciones: "
-    contain = [['/help', 'Ayuda'], ['/who',u'¿Quien hay en Sugus?'], ['/como',u'Yo como aquí']]
-    contain = contain + [['/nocomo',u'Yo no como aquí'], ['/quiencome', u'¿Quien come aquí?']]
-    contain = contain +[['/testinghelp', 'Ayuda testing']]
-    return show(header, contain, [0,1])
+    header = "Elige una de las opciones: "
+    contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/como','Yo como aquí']]
+    contain = contain + [['/nocomo', 'Yo no como aquí'], ['/quiencome', '¿Quien come aquí?']]
+    return showList(header, contain, [0, 1])
 
 def getUpdates(LAST_UPDATE_ID, timeout = 30):
     while True:
@@ -163,11 +162,12 @@ def getUpdates(LAST_UPDATE_ID, timeout = 30):
             else:
                 raise
 
-        except urllib2.URLError as error:
-            print(u"URLError! Retrying...")
+        except URLError as error:
+            print("URLError! Retrying...")
             time.sleep(1)
-        except:
-            print(u'Ignore errors')
+        except Exception as e:
+            print("Exception: " + e)
+            print('Ignore errors')
             pass
         else:
             break
@@ -177,17 +177,18 @@ def sendMessages(send_text, chat_id):
     while True:
         try:
             bot.sendMessage(chat_id=chat_id, text=send_text)
-            print(u"Mensaje enviado a id: {}".format(chat_id))
+            print("Mensaje enviado a id: " + str(chat_id))
             break
         except telegram.TelegramError as error:
             if error.message == "Timed out":
                 print("Timed out! Retrying...")
             else:
                 print(error)
-        except urllib2.URLError as error:
+        except URLError as error:
             print("URLError! Retrying to send message...")
             time.sleep(1)
-        except:
+        except Exception as e:
+            print("Exception: " + e)
             print('Ignore exception')
             pass
 
@@ -195,29 +196,35 @@ def getWho():
     while True:
         try:
             url = 'http://sugus.eii.us.es/en_sugus.html'
-            html = urllib.urlopen(url).read()
+            #html = AssertionErrorurlopen(url).read()
+            html = urlopen(url).read()
             pq = PyQuery(html)
             break
         except:
             raise
 
     ul = pq('ul.usuarios > li')
+    who = [w.text() for w in ul.items() if w != "Parece que no hay nadie."]
 
-    who = []
-    ul.each(lambda w : who.append(ul.eq(w).text()))
-
-    who_filtered = [w for w in who if w != "Parece que no hay nadie."]
-
-    return who_filtered
+    return who
 
 def addTo(event, name):
-    c = conn.cursor()
 
-    date = datetime.now().strftime("%d-%m-%y")
-    c.execute('insert into eventTable values(?, ?, ?)', (date, event.replace(" ",""), u'@'+name.replace(" ", "")))
-    conn.commit()
-    c.close()
-    return name + u' añadido a ' + event
+    if event and name:
+        c = conn.cursor()
+        date = datetime.now().strftime("%d-%m-%y")
+
+        c.execute('insert into eventTable values(?, ?, ?)', (date, event.replace(" ",""), u'@'+name.replace(" ", "")))
+        conn.commit()
+        c.close()
+        result = name + ' añadido a ' + event
+
+    elif name:
+        result = "No tienes nombre de usuario o alias. \n Es necesario para poder añadirte a un evento"
+    else:
+        result = "No se ha podido añadir el usuario @" + name+ " a la lista " + name
+
+    return result
 
 def findByEvent(event):
     c = conn.cursor()
@@ -229,30 +236,35 @@ def findByEvent(event):
     return result
 
 def removeFromEvent(event, name):
-    c = conn.cursor()
 
-    c.execute('delete from eventTable where event=? and name=?', (event, u'@' + name))
+    if any([('@' + name) in i for i in findByEvent(event)]):
+        c = conn.cursor()
 
-    conn.commit()
+        c.execute('delete from eventTable where event=? and name=?', (event, u'@' + name))
+        conn.commit()
 
-    c.close()
+        c.close()
+        result = "Has sido eliminado del evento " + event
+    else:
+        result = "No estás en el evento " + event
 
-    return str(u'Has sido eliminado del evento '+ event)
+    return result
 
 def emptyEvent(event, name):
-    # Debe de estar en el evento ! !
-    c = conn.cursor()
 
     if u'@' + name in findByEvent(event):
+        c = conn.cursor()
+
         c.execute('delete from eventTable where event=?', (event))
-        text = u'El evento {} ha sido eliminado'.join(event)
+
+        result = "El evento " + event +" ha sido eliminado"
         conn.commit()
+
+        c.close()
     else:
-        text = u'El evento ' + event + ' NO ha sido eliminado'
+        result = 'El evento ' + event + ' NO ha sido eliminado'
 
-    c.close()
-
-    return text
+    return result
 
 def listEvents():
     c = conn.cursor()
@@ -262,4 +274,11 @@ def listEvents():
     return h
 
 if __name__ == '__main__':
-    main()
+    while True:
+        try:
+            main()
+        except Exception as e:
+            with open('log','w+') as file:
+                file.write(str(datetime.now().strftime("%d-%m-%y"))+"\n")
+                file.write(str(e))
+            pass
