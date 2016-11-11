@@ -243,7 +243,7 @@ def getWho():
             raise
 
     ul = pq('ul.usuarios > li')
-    who = [w.text() for w in ul.items() if w != "Parece que no hay nadie."]
+    who = [w.text() for w in ul.items() if w.text() != "Parece que no hay nadie."]
 
     return who
 
