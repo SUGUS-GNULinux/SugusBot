@@ -173,7 +173,7 @@ def periodicCheck():
 
     for a in actComida:
         if a[0] != actDate:
-            removeFromEvent('comida', a[2])
+            removeFromEvent('comida', a[2][1:])
 
 def help():
     header = "Elige una de las opciones: "
