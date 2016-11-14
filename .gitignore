@@ -1,4 +1,4 @@
-token
+myconfig.ini
 log
 *.pyc
 *.db

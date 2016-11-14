@@ -15,13 +15,15 @@ import sys
 import sqlite3
 from datetime import datetime
 
-
-token = None
-conn = sqlite3.connect('sugusBotDB.db')
+import configparser
 
 
-with open('token', 'rb') as token_file:
-    token = token_file.readline().decode('ascii')[:-1]
+config = configparser.ConfigParser()
+config.read('myconfig.ini')
+database = config['Database']['route']
+token = config['Telegram']['token']
+
+conn = sqlite3.connect(database)
 
 # Create bot object
 bot = telegram.Bot(token)
