@@ -22,6 +22,7 @@ config = configparser.ConfigParser()
 config.read('myconfig.ini')
 database = config['Database']['route']
 token = config['Telegram']['token']
+id_admin = config['Telegram']['id_admin']
 
 conn = sqlite3.connect(database)
 
@@ -31,7 +32,19 @@ bot = telegram.Bot(token)
 
 def secInit():
     c = conn.cursor()
-    c.execute('create table if not exists eventTable(date text, event text, name text, UNIQUE(event, name) ON CONFLICT REPLACE)')
+    c.execute('CREATE TABLE IF NOT EXISTS eventTable(date TEXT, event TEXT, name TEXT, UNIQUE(event, name) ON CONFLICT REPLACE)')
+    c.execute('CREATE TABLE IF NOT EXISTS userTable(id_user INTEGER PRIMARY KEY, id_user_telegram NUMBER, user_name text, UNIQUE(id_user_telegram, user_name))')
+    c.execute('CREATE TABLE IF NOT EXISTS permissionTable(id_permission INTEGER PRIMARY KEY, permission TEXT, UNIQUE(permission))')
+    c.execute('CREATE TABLE IF NOT EXISTS rel_user_permission(user INTEGER, permission INTEGER, FOREIGN KEY(user) REFERENCES userTable(id_user), FOREIGN KEY(permission) REFERENCES permissionTable(id_permission))')
+
+    if not c.execute('SELECT COUNT(*) FROM permissionTable').fetchone()[0]:
+        c.executemany('INSERT INTO permissionTable(permission) VALUES (?)', [('admin',), ('sugus',)])
+        c.execute('INSERT INTO userTable(id_user_telegram) VALUES (?)', (id_admin,))
+        #es necesario?
+        permission = c.execute('SELECT id_permission FROM permissionTable WHERE permission = ?', ('admin',)).fetchone()[0]
+        c.execute('INSERT INTO rel_user_permission VALUES (?, ?)', (1, permission))
+
+
     conn.commit()
     c.close()
 
