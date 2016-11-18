@@ -12,11 +12,11 @@ import string
 import codecs
 import sys
 
-import sqlite3
 from datetime import datetime
 
 import configparser
 
+from dbaccess import connection, sec_init, add_to, find_by_event, remove_from_event, empty_event, list_events
 
 config = configparser.ConfigParser()
 config.read('myconfig.ini')
@@ -24,33 +24,14 @@ database = config['Database']['route']
 token = config['Telegram']['token']
 id_admin = config['Telegram']['id_admin']
 
-conn = sqlite3.connect(database)
-
 # Create bot object
 bot = telegram.Bot(token)
 
-
-def secInit():
-    c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS eventTable(date TEXT, event TEXT, name TEXT, UNIQUE(event, name) ON CONFLICT REPLACE)')
-    c.execute('CREATE TABLE IF NOT EXISTS userTable(id_user INTEGER PRIMARY KEY, id_user_telegram NUMBER, user_name text, UNIQUE(id_user_telegram, user_name))')
-    c.execute('CREATE TABLE IF NOT EXISTS permissionTable(id_permission INTEGER PRIMARY KEY, permission TEXT, UNIQUE(permission))')
-    c.execute('CREATE TABLE IF NOT EXISTS rel_user_permission(user INTEGER, permission INTEGER, FOREIGN KEY(user) REFERENCES userTable(id_user), FOREIGN KEY(permission) REFERENCES permissionTable(id_permission))')
-
-    if not c.execute('SELECT COUNT(*) FROM permissionTable').fetchone()[0]:
-        c.executemany('INSERT INTO permissionTable(permission) VALUES (?)', [('admin',), ('sugus',)])
-        c.execute('INSERT INTO userTable(id_user_telegram) VALUES (?)', (id_admin,))
-        #es necesario?
-        permission = c.execute('SELECT id_permission FROM permissionTable WHERE permission = ?', ('admin',)).fetchone()[0]
-        c.execute('INSERT INTO rel_user_permission VALUES (?, ?)', (1, permission))
-
-
-    conn.commit()
-    c.close()
+connection(database)
 
 def main():
 
-    secInit()
+    sec_init(id_admin)
 
     # UTF-8 console stuff thingies
     sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
@@ -91,61 +72,61 @@ def main():
 
             periodicCheck()
 
-            if checkTypeAndTextStart(aText= actText, cText='/who', aType=actType, cType='private'):
+            if check_type_and_text_start(aText= actText, cText='/who', aType=actType, cType='private'):
                 who = getWho()
 
                 if not who:
                     #changes in emojis in python3 telegram version
                     send_text = u"Parece que no hay nadie... {}".format(telegram.Emoji.DISAPPOINTED_FACE)
                 else:
-                    send_text = showList(u"Miembros en SUGUS:", who)
+                    send_text = show_list(u"Miembros en SUGUS:", who)
 
-            if checkTypeAndTextStart(aText= actText, cText='/como', aType=actType, cType='private'):
-                send_text = addTo('comida', actUser)
+            if check_type_and_text_start(aText= actText, cText='/como', aType=actType, cType='private'):
+                send_text = add_to('comida', actUser)
 
-            if checkTypeAndTextStart(aText= actText, cText='/nocomo', aType=actType, cType='private'):
-                send_text = removeFromEvent('comida', actUser)
+            if check_type_and_text_start(aText= actText, cText='/nocomo', aType=actType, cType='private'):
+                send_text = remove_from_event('comida', actUser)
 
-            if checkTypeAndTextStart(aText= actText, cText='/quiencome', aType=actType, cType='private'):
-                if len(findByEvent('comida')) != 0:
-                    send_text = showList(u"Hoy come en Sugus:", findByEvent('comida'), [2, 0])
+            if check_type_and_text_start(aText= actText, cText='/quiencome', aType=actType, cType='private'):
+                if len(find_by_event('comida')) != 0:
+                    send_text = show_list(u"Hoy come en Sugus:", find_by_event('comida'), [2, 0])
                 else:
                     send_text = 'De momento nadie come en Sugus'
 
-            if checkTypeAndTextStart(aText= actText, cText='/testingjoin', aType=actType, cType='private'):
+            if check_type_and_text_start(aText= actText, cText='/testingjoin', aType=actType, cType='private'):
                 rtext = actText.replace('/testingjoin','').replace(' ','')
                 if not rtext:
                     send_text = u"Elige un evento /testingparticipants"
                 else:
-                    addTo(rtext, actUser)
+                    add_to(rtext, actUser)
 
-            if checkTypeAndTextStart(aText= actText, cText='/testingparticipants', aType=actType, cType='private'):
+            if check_type_and_text_start(aText= actText, cText='/testingparticipants', aType=actType, cType='private'):
                 rtext = actText.replace('/testingparticipants','').replace(' ','')
                 if not rtext:
-                    send_text = showList(u"Elige una de las listas:", listEvents(), [0])
+                    send_text = show_list(u"Elige una de las listas:", list_events(), [0])
                 else:
-                    if len(findByEvent(rtext)) == 0:
+                    if len(find_by_event(rtext)) == 0:
                         send_text = u"No hay nadie en {}".format(rtext)
                     else:
-                        send_text = showList(u"Participantes en {}:".format(rtext), findByEvent(rtext), [2, 0])
+                        send_text = show_list(u"Participantes en {}:".format(rtext), find_by_event(rtext), [2, 0])
 
-            if checkTypeAndTextStart(aText= actText, cText='/testingdisjoin', aType=actType, cType='private'):
+            if check_type_and_text_start(aText= actText, cText='/testingdisjoin', aType=actType, cType='private'):
                 rtext = actText.replace('/testingdisjoin','').replace(' ','')
-                send_text = removeFromEvent(rtext, actUser)
+                send_text = remove_from_event(rtext, actUser)
 
-            if checkTypeAndTextStart(aText= actText, cText='/testinghelp', aType=actType, cType='private'): #, aType=actType, cType='private'):
+            if check_type_and_text_start(aText= actText, cText='/testinghelp', aType=actType, cType='private'): #, aType=actType, cType='private'):
                 send_text = helpTesting()
 
-            if checkTypeAndTextStart(aText= actText, cText='/testingempty', aType=actType, cType='private'):
+            if check_type_and_text_start(aText= actText, cText='/testingempty', aType=actType, cType='private'):
                 rtext = actText.replace('/testingempty','').replace(' ','')
                 if rtext != 'comida':
-                    send_text = emptyEvent(rtext, actUser)
+                    send_text = empty_event(rtext, actUser)
                 else:
                     send_text = 'No soy tonto, no voy a dejar que borres quien come hoy'
 
             if send_text != None:
                 sendMessages(send_text, chat_id)
-            elif checkTypeAndTextStart(aType=actType, cType='private'):
+            elif check_type_and_text_start(aType=actType, cType='private'):
                 sendMessages(help(), chat_id)
             else:
                 print("Mensaje enviado y no publicado por: "+str(actUser))
@@ -153,7 +134,7 @@ def main():
             LAST_UPDATE_ID = update_id + 1
 
 
-def checkTypeAndTextStart(aText = None, aUName = None, cText = None, aType = None, cType = None, cUName = None):
+def check_type_and_text_start(aText = None, aUName = None, cText = None, aType = None, cType = None, cUName = None):
 
     result = True
 
@@ -167,7 +148,7 @@ def checkTypeAndTextStart(aText = None, aUName = None, cText = None, aType = Non
 
     return result
 
-def showList(header, contains, positions = None):
+def show_list(header, contains, positions = None):
     result = '{}'.format(header)
     if contains != None:
         for a in contains:
@@ -184,25 +165,25 @@ def periodicCheck():
 
     ## Remove periodic comida
     actDate = datetime.now().strftime("%d-%m-%y")
-    actComida = findByEvent('comida')
+    actComida = find_by_event('comida')
 
     for a in actComida:
         if a[0] != actDate:
-            removeFromEvent('comida', a[2][1:])
+            remove_from_event('comida', a[2][1:])
 
 def help():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/como','Yo como aquí']]
     contain = contain + [['/nocomo', 'Yo no como aquí'], ['/quiencome', '¿Quien come aquí?']]
     contain = contain +[['/testinghelp', 'Ayuda testing']]
-    return showList(header, contain, [0, 1])
+    return show_list(header, contain, [0, 1])
 
 def helpTesting():
     header = "Elige una de las opciones: "
     contain = [['/testinghelp', 'Ayuda testing'], ['/testingjoin','Apuntarse a un evento']]
     contain = contain + [['/testingdisjoin','Desapuntarse de un evento'], ['/testingparticipants', 'Listar una lista']]
     contain = contain + [['/testingempty', 'Vaciar una lista']]
-    return showList(header, contain, [0, 1])
+    return show_list(header, contain, [0, 1])
 
 def getUpdates(LAST_UPDATE_ID, timeout = 30):
     while True:
@@ -262,70 +243,6 @@ def getWho():
 
     return who
 
-def addTo(event, name):
-
-    if event and name:
-        c = conn.cursor()
-        date = datetime.now().strftime("%d-%m-%y")
-
-        c.execute('insert into eventTable values(?, ?, ?)', (date, event.replace(" ",""), u'@'+name.replace(" ", "")))
-        conn.commit()
-        c.close()
-        result = name + ' añadido a ' + event
-
-    elif name:
-        result = "No tienes nombre de usuario o alias. \n Es necesario para poder añadirte a un evento"
-    else:
-        result = "No se ha podido añadir el usuario @" + name+ " a la lista " + name
-
-    return result
-
-def findByEvent(event):
-    c = conn.cursor()
-
-    result = c.execute('select * from eventTable where event=?', (event.replace(" ",""),)).fetchall()
-
-    c.close()
-
-    return result
-
-def removeFromEvent(event, name):
-
-    if any([('@' + name) in i for i in findByEvent(event)]):
-        c = conn.cursor()
-
-        c.execute('delete from eventTable where event=? and name=?', (event, u'@' + name))
-        conn.commit()
-
-        c.close()
-        result = "Has sido eliminado del evento " + event
-    else:
-        result = "No estás en el evento " + event
-
-    return result
-
-def emptyEvent(event, name):
-
-    if u'@' + name in findByEvent(event):
-        c = conn.cursor()
-
-        c.execute('delete from eventTable where event=?', (event))
-
-        result = "El evento " + event +" ha sido eliminado"
-        conn.commit()
-
-        c.close()
-    else:
-        result = 'El evento ' + event + ' NO ha sido eliminado'
-
-    return result
-
-def listEvents():
-    c = conn.cursor()
-
-    h = c.execute('select distinct event from eventTable')
-
-    return h
 
 if __name__ == '__main__':
     while True:
