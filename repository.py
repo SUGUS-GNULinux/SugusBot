@@ -28,7 +28,7 @@ def sec_init(id_admin):
     conn.commit()
     c.close()
 
-def add_to(event, name):
+def add_to_event(event, name):
 
     if event and name:
         c = conn.cursor()

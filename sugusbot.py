@@ -16,7 +16,7 @@ from datetime import datetime
 
 import configparser
 
-from dbaccess import connection, sec_init, add_to, find_by_event, remove_from_event, empty_event, list_events
+from repository import connection, sec_init, add_to_event, find_by_event, remove_from_event, empty_event, list_events
 
 config = configparser.ConfigParser()
 config.read('myconfig.ini')
@@ -82,7 +82,7 @@ def main():
                     send_text = show_list(u"Miembros en SUGUS:", who)
 
             if check_type_and_text_start(aText= actText, cText='/como', aType=actType, cType='private'):
-                send_text = add_to('comida', actUser)
+                send_text = add_to_event('comida', actUser)
 
             if check_type_and_text_start(aText= actText, cText='/nocomo', aType=actType, cType='private'):
                 send_text = remove_from_event('comida', actUser)
@@ -98,7 +98,7 @@ def main():
                 if not rtext:
                     send_text = u"Elige un evento /testingparticipants"
                 else:
-                    add_to(rtext, actUser)
+                    add_to_event(rtext, actUser)
 
             if check_type_and_text_start(aText= actText, cText='/testingparticipants', aType=actType, cType='private'):
                 rtext = actText.replace('/testingparticipants','').replace(' ','')
