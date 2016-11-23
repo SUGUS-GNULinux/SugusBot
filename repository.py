@@ -70,19 +70,25 @@ def remove_from_event(event, name):
 
     return result
 
-def empty_event(event, name):
+#el evento solo lo puede borrar un usuario con privilegios
+def empty_event(event, date=None):
 
-    if u'@' + name in find_by_event(event):
+    if find_by_event(event):
         c = conn.cursor()
 
-        c.execute('delete from eventTable where event=?', (event))
+        if date:
+            c.execute('DELETE FROM eventTable WHERE date=? AND event=?', (date,event))
+            result = "El evento " + event + " de " + date + " ha sido eliminado"
+        else:
 
-        result = "El evento " + event +" ha sido eliminado"
+            c.execute('DELETE FROM eventTable WHERE event=?', (event,))
+            result = "El evento " + event +" ha sido eliminado"
+
         conn.commit()
 
         c.close()
     else:
-        result = 'El evento ' + event + ' NO ha sido eliminado'
+        result = 'El evento ' + event + ' no existe'
 
     return result
 
