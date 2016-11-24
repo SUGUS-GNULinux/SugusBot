@@ -11,7 +11,7 @@ from datetime import datetime
 
 import configparser
 
-from repository import connection, sec_init, add_to_event, find_by_event, remove_from_event, empty_event, list_events
+from repository import connection, sec_init, add_to_event, find_by_event, remove_from_event, empty_event, list_events, add_permission_group, list_permission_group
 from messaging import create_bot, getUpdates, sendMessages
 from ancillary_methods import getWho, check_type_and_text_start, show_list
 
@@ -90,7 +90,20 @@ def main():
                 else:
                     send_text = 'De momento nadie come en Sugus'
 
-            if check_type_and_text_start(aText= actText, cText='/testingjoin', aType=actType, cType='private'):
+            if check_type_and_text_start(aText=actText, cText='/comida', aType=actType, cType='private'):
+                send_text = help_eat()
+
+            if check_type_and_text_start(aText=actText, cText='/group', aType=actType, cType='private'):
+                send_text = help_group()
+
+            if check_type_and_text_start(aText=actText, cText='/groupadd', aType=actType, cType='private', cUId=message.from_user.id, perm_required="admin"):
+                rtext = actText.replace('/groupadd ','').replace('/groupadd','')
+                send_text = add_permission_group(rtext)
+
+            if check_type_and_text_start(aText= actText, cText='/groups', aType=actType, cType='private', cUId=message.from_user.id):
+                send_text = show_list(u"Grupos de permisos disponibles:", list_permission_group(), [0])
+
+            if check_type_and_text_start(aText=actText, cText='/testingjoin', aType=actType, cType='private'):
                 rtext = actText.replace('/testingjoin','').replace(' ','')
                 if not rtext:
                     send_text = u"Elige un evento /testingparticipants"
@@ -141,12 +154,28 @@ def periodicCheck():
         if a[0] != actDate:
             remove_from_event('comida', a[2][1:])
 
+
 def help():
     header = "Elige una de las opciones: "
-    contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/como','Yo como aquí']]
-    contain = contain + [['/nocomo', 'Yo no como aquí'], ['/quiencome', '¿Quien come aquí?']]
+    contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/comida','Opciones de comida']]
+    contain = contain + [['/group', 'Opciones de grupos de permisos']]
     contain = contain +[['/testinghelp', 'Ayuda testing']]
     return show_list(header, contain, [0, 1])
+
+
+def help_eat():
+    header = "Elige una de las opciones: "
+    contain = [['/help', 'Ayuda']]
+    contain = contain + [['/como','Yo como aquí'], ['/nocomo', 'Yo no como aquí'], ['/quiencome', '¿Quien come aquí?']]
+    return show_list(header, contain, [0, 1])
+
+
+def help_group():
+    header = "Elige una de las opciones: "
+    contain = [['/help', 'Ayuda']]
+    contain = contain + [['/groups', 'Listar grupos'], ['/groupadd', 'Añadir un grupo']]
+    return show_list(header, contain, [0, 1])
+
 
 def helpTesting():
     header = "Elige una de las opciones: "

@@ -117,3 +117,22 @@ def find_user_by_user_id_and_permission(user_id, permission):
     return h
 
 
+def add_permission_group(permission_name):
+    permission_name = permission_name.replace(" ", "_")
+    if permission_name != None and permission_name is not "" and permission_name is not "_":
+        c = conn.cursor()
+
+        c.execute('INSERT INTO permissionTable(permission) VALUES (?)', (permission_name,))
+        conn.commit()
+        c.close()
+        return "Añadido grupo de permiso '" + str(permission_name) + "'"
+    else:
+        return "Grupo de permiso no válido: " + str(permission_name)
+
+
+def list_permission_group():
+    c = conn.cursor()
+
+    h = c.execute('SELECT permission FROM permissionTable')
+
+    return h

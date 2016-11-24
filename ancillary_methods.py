@@ -32,7 +32,7 @@ def check_type_and_text_start(aText = None, aUName = None, cText = None, aType =
     if cType != None:
         result = result and aType == cType
     if cUId != None:
-        if perm_required:  # Comprobar solo usuario y permiso
+        if perm_required == None:  # Comprobar solo usuario y permiso
             result = result and find_user_by_user_id(cUId) != None
         else:  # Comprobar usuario y permiso
             result = result and find_user_by_user_id_and_permission(cUId, perm_required) != None
