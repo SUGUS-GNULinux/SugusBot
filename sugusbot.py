@@ -1,13 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3.5
 # -*- coding: utf-8 -*-
 
 import logging
-from urllib.request import urlopen
-from urllib.error import URLError
-import time
-from pyquery import PyQuery
 import telegram
-import string
 
 import codecs
 import sys
@@ -17,6 +12,8 @@ from datetime import datetime
 import configparser
 
 from repository import connection, sec_init, add_to_event, find_by_event, remove_from_event, empty_event, list_events
+from messaging import create_bot, getUpdates, sendMessages
+from ancillary_methods import getWho, check_type_and_text_start, show_list
 
 config = configparser.ConfigParser()
 config.read('myconfig.ini')
@@ -25,7 +22,7 @@ token = config['Telegram']['token']
 id_admin = config['Telegram']['id_admin']
 
 # Create bot object
-bot = telegram.Bot(token)
+create_bot(token)
 
 connection(database)
 
@@ -46,7 +43,7 @@ def main():
     LAST_UPDATE_ID = None
 
     while True:
-        updates = bot.getUpdates(LAST_UPDATE_ID, timeout=1, network_delay=2.0)
+        updates = getUpdates(LAST_UPDATE_ID, timeout=1)
         if updates is not None and updates:
             num_discarded = num_discarded + len(updates)
             LAST_UPDATE_ID = updates[-1].update_id + 1
@@ -134,33 +131,6 @@ def main():
             LAST_UPDATE_ID = update_id + 1
 
 
-def check_type_and_text_start(aText = None, aUName = None, cText = None, aType = None, cType = None, cUName = None):
-
-    result = True
-
-    if cType != None:
-        result = result and aType == cType
-    if cUName != None:
-        if aUName in cUName:
-            result = result and False
-    if cText != None:
-        result = result and aText.startswith(cText)
-
-    return result
-
-def show_list(header, contains, positions = None):
-    result = '{}'.format(header)
-    if contains != None:
-        for a in contains:
-            #changes in emojis in python3 telegram version
-            result = '{}\n {}'.format(result, telegram.Emoji.SMALL_BLUE_DIAMOND)
-            if positions != None:
-                for i in positions:
-                    result = '{} {} '.format(result, a[i])
-            else:
-                result = '{} {} '.format(result, a[:])
-    return result
-
 def periodicCheck():
 
     ## Remove periodic comida
@@ -184,64 +154,6 @@ def helpTesting():
     contain = contain + [['/testingdisjoin','Desapuntarse de un evento'], ['/testingparticipants', 'Listar una lista']]
     contain = contain + [['/testingempty', 'Vaciar una lista']]
     return show_list(header, contain, [0, 1])
-
-def getUpdates(LAST_UPDATE_ID, timeout = 30):
-    while True:
-        try:
-            updates = bot.getUpdates(LAST_UPDATE_ID, timeout=timeout, network_delay=2.0)
-        except telegram.TelegramError as error:
-            if error.message == "Timed out":
-                print(u"Timed out! Retrying...")
-            elif error.message == "Bad Gateway":
-                    print("Bad gateway. Retrying...")
-            else:
-                raise
-
-        except URLError as error:
-            print("URLError! Retrying...")
-            time.sleep(1)
-        except Exception as e:
-            print("Exception: " + e)
-            print('Ignore errors')
-            pass
-        else:
-            break
-    return updates
-
-def sendMessages(send_text, chat_id):
-    while True:
-        try:
-            bot.sendMessage(chat_id=chat_id, text=send_text)
-            print("Mensaje enviado a id: " + str(chat_id))
-            break
-        except telegram.TelegramError as error:
-            if error.message == "Timed out":
-                print("Timed out! Retrying...")
-            else:
-                print(error)
-        except URLError as error:
-            print("URLError! Retrying to send message...")
-            time.sleep(1)
-        except Exception as e:
-            print("Exception: " + e)
-            print('Ignore exception')
-            pass
-
-def getWho():
-    while True:
-        try:
-            url = 'http://sugus.eii.us.es/en_sugus.html'
-            #html = AssertionErrorurlopen(url).read()
-            html = urlopen(url).read()
-            pq = PyQuery(html)
-            break
-        except:
-            raise
-
-    ul = pq('ul.usuarios > li')
-    who = [w.text() for w in ul.items() if w.text() != "Parece que no hay nadie."]
-
-    return who
 
 
 if __name__ == '__main__':
