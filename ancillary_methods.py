@@ -4,6 +4,7 @@
 from urllib.request import urlopen
 from pyquery import PyQuery
 import telegram
+from repository import find_user_by_user_id, find_user_by_user_id_and_permission
 
 
 def getWho():
@@ -23,15 +24,18 @@ def getWho():
     return who
 
 
-def check_type_and_text_start(aText = None, aUName = None, cText = None, aType = None, cType = None, cUName = None):
+def check_type_and_text_start(aText = None, aUName = None, cText = None, aType = None, cType = None, cUId = None, perm_required=None):
+    # Si perm_required es None y cUId no es None entonces se busca que el usuario esté en cualquier grupo
 
     result = True
 
     if cType != None:
         result = result and aType == cType
-    if cUName != None:
-        if aUName in cUName:
-            result = result and False
+    if cUId != None:
+        if perm_required:  # Comprobar solo usuario y permiso
+            result = result and find_user_by_user_id(cUId) != None
+        else:  # Comprobar usuario y permiso
+            result = result and find_user_by_user_id_and_permission(cUId, perm_required) != None
     if cText != None:
         result = result and aText.startswith(cText)
 

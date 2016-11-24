@@ -92,9 +92,28 @@ def empty_event(event, date=None):
 
     return result
 
+
 def list_events():
     c = conn.cursor()
 
     h = c.execute('select distinct event from eventTable')
 
     return h
+
+
+def find_user_by_user_id(user_id):
+    c = conn.cursor()
+
+    h = c.execute('select * from userTable where id_user_telegram=?', (user_id,)).fetchone()
+
+    return h
+
+
+def find_user_by_user_id_and_permission(user_id, permission):
+    c = conn.cursor()
+
+    h = c.execute('select * from userTable INNER JOIN rel_user_permission ON userTable.id_user = rel_user_permission.user INNER JOIN permissionTable ON permissionTable.id_permission = rel_user_permission.permission where userTable.id_user_telegram = ? and permissionTable.permission = ?', (user_id, permission)).fetchone()
+
+    return h
+
+
