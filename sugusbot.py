@@ -165,11 +165,7 @@ def periodicCheck():
 
     ## Remove periodic comida
     actDate = datetime.now().strftime("%d-%m-%y")
-    actComida = find_by_event('comida')
-
-    for a in actComida:
-        if a[0] != actDate:
-            remove_from_event('comida', a[2][1:])
+    empty_event('comida',actDate)
 
 def help():
     header = "Elige una de las opciones: "
