@@ -1,13 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3.5
 # -*- coding: utf-8 -*-
 
 import logging
-from urllib.request import urlopen
-from urllib.error import URLError
-import time
-from pyquery import PyQuery
 import telegram
-import string
 
 import codecs
 import sys
@@ -16,7 +11,9 @@ from datetime import datetime
 
 import configparser
 
-from repository import connection, sec_init, add_to_event, find_by_event, remove_from_event, empty_event, list_events
+from repository import connection, sec_init, add_to_event, find_by_event, remove_from_event, empty_event, list_events, add_permission_group, list_permission_group
+from messaging import create_bot, getUpdates, sendMessages
+from ancillary_methods import getWho, check_type_and_text_start, show_list
 
 config = configparser.ConfigParser()
 config.read('myconfig.ini')
@@ -25,7 +22,7 @@ token = config['Telegram']['token']
 id_admin = config['Telegram']['id_admin']
 
 # Create bot object
-bot = telegram.Bot(token)
+create_bot(token)
 
 connection(database)
 
@@ -46,7 +43,7 @@ def main():
     LAST_UPDATE_ID = None
 
     while True:
-        updates = bot.getUpdates(LAST_UPDATE_ID, timeout=1, network_delay=2.0)
+        updates = getUpdates(LAST_UPDATE_ID, timeout=1)
         if updates is not None and updates:
             num_discarded = num_discarded + len(updates)
             LAST_UPDATE_ID = updates[-1].update_id + 1
@@ -93,7 +90,20 @@ def main():
                 else:
                     send_text = 'De momento nadie come en Sugus'
 
-            if check_type_and_text_start(aText= actText, cText='/testingjoin', aType=actType, cType='private'):
+            if check_type_and_text_start(aText=actText, cText='/comida', aType=actType, cType='private'):
+                send_text = help_eat()
+
+            if check_type_and_text_start(aText=actText, cText='/group', aType=actType, cType='private'):
+                send_text = help_group()
+
+            if check_type_and_text_start(aText=actText, cText='/groupadd', aType=actType, cType='private', cUId=message.from_user.id, perm_required="admin"):
+                rtext = actText.replace('/groupadd ','').replace('/groupadd','')
+                send_text = add_permission_group(rtext)
+
+            if check_type_and_text_start(aText= actText, cText='/groups', aType=actType, cType='private', cUId=message.from_user.id):
+                send_text = show_list(u"Grupos de permisos disponibles:", list_permission_group(), [0])
+
+            if check_type_and_text_start(aText=actText, cText='/testingjoin', aType=actType, cType='private'):
                 rtext = actText.replace('/testingjoin','').replace(' ','')
                 if not rtext:
                     send_text = u"Elige un evento /testingparticipants"
@@ -134,45 +144,34 @@ def main():
             LAST_UPDATE_ID = update_id + 1
 
 
-def check_type_and_text_start(aText = None, aUName = None, cText = None, aType = None, cType = None, cUName = None):
-
-    result = True
-
-    if cType != None:
-        result = result and aType == cType
-    if cUName != None:
-        if aUName in cUName:
-            result = result and False
-    if cText != None:
-        result = result and aText.startswith(cText)
-
-    return result
-
-def show_list(header, contains, positions = None):
-    result = '{}'.format(header)
-    if contains != None:
-        for a in contains:
-            #changes in emojis in python3 telegram version
-            result = '{}\n {}'.format(result, telegram.Emoji.SMALL_BLUE_DIAMOND)
-            if positions != None:
-                for i in positions:
-                    result = '{} {} '.format(result, a[i])
-            else:
-                result = '{} {} '.format(result, a[:])
-    return result
-
 def periodicCheck():
 
     ## Remove periodic comida
     actDate = datetime.now().strftime("%d-%m-%y")
     empty_event('comida',actDate)
 
+
 def help():
     header = "Elige una de las opciones: "
-    contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/como','Yo como aquí']]
-    contain = contain + [['/nocomo', 'Yo no como aquí'], ['/quiencome', '¿Quien come aquí?']]
+    contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/comida','Opciones de comida']]
+    contain = contain + [['/group', 'Opciones de grupos de permisos']]
     contain = contain +[['/testinghelp', 'Ayuda testing']]
     return show_list(header, contain, [0, 1])
+
+
+def help_eat():
+    header = "Elige una de las opciones: "
+    contain = [['/help', 'Ayuda']]
+    contain = contain + [['/como','Yo como aquí'], ['/nocomo', 'Yo no como aquí'], ['/quiencome', '¿Quien come aquí?']]
+    return show_list(header, contain, [0, 1])
+
+
+def help_group():
+    header = "Elige una de las opciones: "
+    contain = [['/help', 'Ayuda']]
+    contain = contain + [['/groups', 'Listar grupos'], ['/groupadd', 'Añadir un grupo']]
+    return show_list(header, contain, [0, 1])
+
 
 def helpTesting():
     header = "Elige una de las opciones: "
@@ -180,64 +179,6 @@ def helpTesting():
     contain = contain + [['/testingdisjoin','Desapuntarse de un evento'], ['/testingparticipants', 'Listar una lista']]
     contain = contain + [['/testingempty', 'Vaciar una lista']]
     return show_list(header, contain, [0, 1])
-
-def getUpdates(LAST_UPDATE_ID, timeout = 30):
-    while True:
-        try:
-            updates = bot.getUpdates(LAST_UPDATE_ID, timeout=timeout, network_delay=2.0)
-        except telegram.TelegramError as error:
-            if error.message == "Timed out":
-                print(u"Timed out! Retrying...")
-            elif error.message == "Bad Gateway":
-                    print("Bad gateway. Retrying...")
-            else:
-                raise
-
-        except URLError as error:
-            print("URLError! Retrying...")
-            time.sleep(1)
-        except Exception as e:
-            print("Exception: " + e)
-            print('Ignore errors')
-            pass
-        else:
-            break
-    return updates
-
-def sendMessages(send_text, chat_id):
-    while True:
-        try:
-            bot.sendMessage(chat_id=chat_id, text=send_text)
-            print("Mensaje enviado a id: " + str(chat_id))
-            break
-        except telegram.TelegramError as error:
-            if error.message == "Timed out":
-                print("Timed out! Retrying...")
-            else:
-                print(error)
-        except URLError as error:
-            print("URLError! Retrying to send message...")
-            time.sleep(1)
-        except Exception as e:
-            print("Exception: " + e)
-            print('Ignore exception')
-            pass
-
-def getWho():
-    while True:
-        try:
-            url = 'http://sugus.eii.us.es/en_sugus.html'
-            #html = AssertionErrorurlopen(url).read()
-            html = urlopen(url).read()
-            pq = PyQuery(html)
-            break
-        except:
-            raise
-
-    ul = pq('ul.usuarios > li')
-    who = [w.text() for w in ul.items() if w.text() != "Parece que no hay nadie."]
-
-    return who
 
 
 if __name__ == '__main__':

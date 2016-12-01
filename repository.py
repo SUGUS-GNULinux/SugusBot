@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3.5
 # -*- coding: utf-8 -*-
 
 import sqlite3
@@ -92,9 +92,47 @@ def empty_event(event, date=None):
 
     return result
 
+
 def list_events():
     c = conn.cursor()
 
     h = c.execute('select distinct event from eventTable')
+
+    return h
+
+
+def find_user_by_user_id(user_id):
+    c = conn.cursor()
+
+    h = c.execute('select * from userTable where id_user_telegram=?', (user_id,)).fetchone()
+
+    return h
+
+
+def find_user_by_user_id_and_permission(user_id, permission):
+    c = conn.cursor()
+
+    h = c.execute('select * from userTable INNER JOIN rel_user_permission ON userTable.id_user = rel_user_permission.user INNER JOIN permissionTable ON permissionTable.id_permission = rel_user_permission.permission where userTable.id_user_telegram = ? and permissionTable.permission = ?', (user_id, permission)).fetchone()
+
+    return h
+
+
+def add_permission_group(permission_name):
+    permission_name = permission_name.replace(" ", "_")
+    if permission_name != None and permission_name is not "" and permission_name is not "_":
+        c = conn.cursor()
+
+        c.execute('INSERT INTO permissionTable(permission) VALUES (?)', (permission_name,))
+        conn.commit()
+        c.close()
+        return "Añadido grupo de permiso '" + str(permission_name) + "'"
+    else:
+        return "Grupo de permiso no válido: " + str(permission_name)
+
+
+def list_permission_group():
+    c = conn.cursor()
+
+    h = c.execute('SELECT permission FROM permissionTable')
 
     return h
