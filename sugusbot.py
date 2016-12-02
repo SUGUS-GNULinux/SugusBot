@@ -85,8 +85,9 @@ def main():
                 send_text = remove_from_event('comida', actUser)
 
             if check_type_and_text_start(aText= actText, cText='/quiencome', aType=actType, cType='private'):
-                if len(find_by_event('comida')) != 0:
-                    send_text = show_list(u"Hoy come en Sugus:", find_by_event('comida'), [2, 0])
+                quiencome = find_by_event('comida')
+                if quiencome:
+                    send_text = show_list(u"Hoy come en Sugus:", quiencome, [2, 0])
                 else:
                     send_text = 'De momento nadie come en Sugus'
 
@@ -95,6 +96,9 @@ def main():
 
             if check_type_and_text_start(aText=actText, cText='/group', aType=actType, cType='private'):
                 send_text = help_group()
+
+            if check_type_and_text_start(aText=actText, cText='/events', aType=actType, cType='private'):
+                send_text = help_event()
 
             if check_type_and_text_start(aText=actText, cText='/groupadd', aType=actType, cType='private', cUId=message.from_user.id, perm_required="admin"):
                 rtext = actText.replace('/groupadd ','').replace('/groupadd','')
@@ -156,6 +160,7 @@ def help():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/comida','Opciones de comida']]
     contain = contain + [['/group', 'Opciones de grupos de permisos']]
+    contain = contain + [['/events', 'Opciones de eventos']]
     contain = contain +[['/testinghelp', 'Ayuda testing']]
     return show_list(header, contain, [0, 1])
 
@@ -166,6 +171,13 @@ def help_eat():
     contain = contain + [['/como','Yo como aquí'], ['/nocomo', 'Yo no como aquí'], ['/quiencome', '¿Quien come aquí?']]
     return show_list(header, contain, [0, 1])
 
+
+def help_event():
+    header = "Elige una de las opciones: "
+    contain = [['/help', 'Ayuda']]
+    contain = contain + [['/events', 'Listar eventos'], ['/addevent', 'Añadir un evento'], ['/jointoevent', 'Unirte a un evento']]
+    contain = contain + [['/leaveevent', 'Abandonar un evento'], ['/removeevent', 'Eliminar un evento']]
+    return show_list(header, contain, [0, 1])
 
 def help_group():
     header = "Elige una de las opciones: "
