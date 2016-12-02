@@ -188,7 +188,6 @@ if __name__ == '__main__':
         try:
             main()
         except Exception as e:
-            with open('log','w+') as file:
-                file.write(str(datetime.now().strftime("%d-%m-%y"))+"\n")
-                file.write(str(e)+"\n")
-            pass
+            with open('log','w+') as f:
+                f.write(str(datetime.now().strftime("%d-%m-%y"))+"\n")
+                f.write(str(e)+"\n")
