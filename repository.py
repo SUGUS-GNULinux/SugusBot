@@ -13,8 +13,8 @@ def connection(database):
 
 def sec_init(id_admin):
     c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS eventTable(date TEXT, event TEXT, name TEXT, UNIQUE(event, name) ON CONFLICT REPLACE)')
-    c.execute('CREATE TABLE IF NOT EXISTS userTable(id_user INTEGER PRIMARY KEY, id_user_telegram NUMBER, user_name text, UNIQUE(id_user_telegram, user_name))')
+    c.execute('CREATE TABLE IF NOT EXISTS eventTable(date TEXT, event TEXT, name TEXT, UNIQUE(date, event, name) ON CONFLICT REPLACE)')
+    c.execute('CREATE TABLE IF NOT EXISTS userTable(id_user INTEGER PRIMARY KEY, id_user_telegram NUMBER UNIQUE, user_name text UNIQUE)')
     c.execute('CREATE TABLE IF NOT EXISTS permissionTable(id_permission INTEGER PRIMARY KEY, permission TEXT, UNIQUE(permission))')
     c.execute('CREATE TABLE IF NOT EXISTS rel_user_permission(user INTEGER, permission INTEGER, FOREIGN KEY(user) REFERENCES userTable(id_user), FOREIGN KEY(permission) REFERENCES permissionTable(id_permission))')
 
@@ -99,31 +99,39 @@ def empty_event(event, date=None):
 
 def list_events():
     c = conn.cursor()
-
     h = c.execute('select distinct event from eventTable')
+    c.close()
 
     return h
 
 
 def find_user_by_user_id(user_id):
     c = conn.cursor()
-
     h = c.execute('select * from userTable where id_user_telegram=?', (user_id,)).fetchone()
+
+    if h:
+        h = h[0]
+
+    c.close()
 
     return h
 
 
-def find_user_by_user_id_and_permission(user_id, permission):
+def check_user_permission(user_id, permission):
     c = conn.cursor()
-
     h = c.execute('select * from userTable INNER JOIN rel_user_permission ON userTable.id_user = rel_user_permission.user INNER JOIN permissionTable ON permissionTable.id_permission = rel_user_permission.permission where userTable.id_user_telegram = ? and permissionTable.permission = ?', (user_id, permission)).fetchone()
+
+    if h:
+        h = h[0]
+
+    c.close()
 
     return h
 
 
 def add_permission_group(permission_name):
-    permission_name = permission_name.replace(" ", "_")
-    if permission_name != None and permission_name is not "" and permission_name is not "_":
+    if permission_name and permission_name is not " ":
+        permission_name = permission_name.replace(" ", "_")
         c = conn.cursor()
 
         c.execute('INSERT INTO permissionTable(permission) VALUES (?)', (permission_name,))
@@ -137,6 +145,25 @@ def add_permission_group(permission_name):
 def list_permission_group():
     c = conn.cursor()
 
-    h = c.execute('SELECT permission FROM permissionTable')
+    h = c.execute('SELECT permission FROM permissionTable').fetchall()
+    if h:
+        h = [i[0] for i in c.execute('SELECT permission FROM permissionTable').fetchall()]
 
+    c.close()
     return h
+
+
+def add_user_permission(id_user_telegram, permission):
+    c = conn.cursor()
+    permission = c.execute('SELECT id_permission FROM permissionTable WHERE permission = ?', (permission,)).fetchone()
+
+    if permission:
+        c.execute('INSERT INTO userTable(id_user_telegram) VALUES (?)', (id_user_telegram,))
+        id_user = c.execute('SELECT id_user from userTable WHERE id_user_telegram = ?', (id_user_telegram,)).fetchone()[0]
+        c.execute('INSERT INTO rel_user_permission VALUES (?, ?)', (id_user, permission[0]))
+        conn.commit()
+        return "Rol añadido a usuario " + str(id_user_telegram)
+    else:
+        return "El rol indicado no existe"
+
+    c.close()
