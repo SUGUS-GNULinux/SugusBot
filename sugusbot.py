@@ -7,7 +7,7 @@ import telegram
 import codecs
 import sys
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import configparser
 
@@ -147,8 +147,10 @@ def main():
 def periodicCheck():
 
     ## Remove periodic comida
-    actDate = datetime.now().strftime("%d-%m-%y")
-    empty_event('comida',actDate)
+    yesterdayDate = datetime.now() - timedelta(days = 1)
+    yesterdayDate = yesterdayDate.strftime("%d-%m-%y")
+
+    empty_event('comida',yesterdayDate)
 
 
 def help():
