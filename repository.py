@@ -28,6 +28,7 @@ def sec_init(id_admin):
     conn.commit()
     c.close()
 
+
 def add_to_event(event, name):
 
     if event and name:
@@ -46,6 +47,7 @@ def add_to_event(event, name):
 
     return result
 
+
 def find_by_event(event):
     c = conn.cursor()
 
@@ -54,6 +56,7 @@ def find_by_event(event):
     c.close()
 
     return result
+
 
 def remove_from_event(event, name):
 
@@ -69,6 +72,7 @@ def remove_from_event(event, name):
         result = "No estás en el evento " + event
 
     return result
+
 
 #el evento solo lo puede borrar un usuario con privilegios
 def empty_event(event, date=None):

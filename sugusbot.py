@@ -13,7 +13,7 @@ import configparser
 
 from repository import connection, sec_init, add_to_event, find_by_event, remove_from_event, empty_event, list_events, add_permission_group, list_permission_group
 from messaging import create_bot, getUpdates, sendMessages
-from ancillary_methods import getWho, check_type_and_text_start, show_list
+from auxilliary_methods import get_who, check_type_and_text_start, show_list
 
 config = configparser.ConfigParser()
 config.read('myconfig.ini')
@@ -67,10 +67,10 @@ def main():
 
             send_text = None
 
-            periodicCheck()
+            periodic_check()
 
             if check_type_and_text_start(aText= actText, cText='/who', aType=actType, cType='private'):
-                who = getWho()
+                who = get_who()
 
                 if not who:
                     #changes in emojis in python3 telegram version
@@ -144,9 +144,8 @@ def main():
             LAST_UPDATE_ID = update_id + 1
 
 
-def periodicCheck():
+def periodic_check():
 
-    ## Remove periodic comida
     yesterdayDate = datetime.now() - timedelta(days = 1)
     yesterdayDate = yesterdayDate.strftime("%d-%m-%y")
 
