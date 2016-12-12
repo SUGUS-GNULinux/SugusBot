@@ -159,17 +159,17 @@ def periodic_check():
 def help():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/comida','Opciones de comida']]
-    contain = contain + [['/group', 'Opciones de grupos de permisos']]
+    contain = contain + [['/group', 'Opciones de permisos']]
     contain = contain + [['/events', 'Opciones de eventos']]
     contain = contain +[['/testinghelp', 'Ayuda testing']]
-    return show_list(header, contain, [0, 1])
+    return show_list(header, contain)
 
 
 def help_eat():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda']]
     contain = contain + [['/como','Yo como aquí'], ['/nocomo', 'Yo no como aquí'], ['/quiencome', '¿Quien come aquí?']]
-    return show_list(header, contain, [0, 1])
+    return show_list(header, contain)
 
 
 def help_event():
@@ -177,13 +177,13 @@ def help_event():
     contain = [['/help', 'Ayuda']]
     contain = contain + [['/events', 'Listar eventos'], ['/addevent', 'Añadir un evento'], ['/jointoevent', 'Unirte a un evento']]
     contain = contain + [['/leaveevent', 'Abandonar un evento'], ['/removeevent', 'Eliminar un evento']]
-    return show_list(header, contain, [0, 1])
+    return show_list(header, contain)
 
 def help_group():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda']]
     contain = contain + [['/groups', 'Listar grupos'], ['/groupadd', 'Añadir un grupo']]
-    return show_list(header, contain, [0, 1])
+    return show_list(header, contain)
 
 
 def helpTesting():

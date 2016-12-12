@@ -8,6 +8,7 @@ from repository import find_user_by_user_id, check_user_permission
 
 
 def get_who():
+
     while True:
         try:
             url = 'http://sugus.eii.us.es/en_sugus.html'
@@ -41,16 +42,17 @@ def check_type_and_text_start(aText = None, aUName = None, cText = None, aType =
 
     return result
 
-
 def show_list(header, contains, positions = None):
-    result = '{}'.format(header)
-    if contains is not None:
-        for a in contains:
-            #changes in emojis in python3 telegram version
-            result = '{}\n {}'.format(result, telegram.Emoji.SMALL_BLUE_DIAMOND)
-            if positions != None:
-                for i in positions:
-                    result = '{} {} '.format(result, a[i])
-            else:
-                result = '{} {} '.format(result, a[:])
-    return result
+
+    result = [header + "\n"]
+
+    if contains:
+        if positions:
+            for a in contains:
+                a_ordered = [a[i] for i in positions]
+                result.append("{} {}\n".format(telegram.Emoji.SMALL_BLUE_DIAMOND," ".join(a_ordered)))
+        else:
+            rows = ["{} {}\n".format(telegram.Emoji.SMALL_BLUE_DIAMOND ," ".join(a)) for a in contains]
+            result += rows
+
+    return "".join(result)
