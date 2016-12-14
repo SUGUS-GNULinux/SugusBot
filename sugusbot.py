@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 
 import configparser
 
+from emoji import emojize
+
 from repository import connection, sec_init, add_to_event, find_by_event, remove_from_event, empty_event, list_events, add_permission_group, list_permission_group
 from messaging import create_bot, getUpdates, sendMessages
 from auxilliary_methods import get_who, check_type_and_text_start, show_list
@@ -74,7 +76,7 @@ def main():
 
                 if not who:
                     #changes in emojis in python3 telegram version
-                    send_text = u"Parece que no hay nadie... {}".format(telegram.Emoji.DISAPPOINTED_FACE)
+                    send_text = u"Parece que no hay nadie... {}".format(emojize(":disappointed_face:", use_aliases=True))
                 else:
                     send_text = show_list(u"Miembros en SUGUS:", who)
 

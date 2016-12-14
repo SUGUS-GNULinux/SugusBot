@@ -5,6 +5,7 @@ from urllib.request import urlopen
 from pyquery import PyQuery
 import telegram
 from repository import find_user_by_user_id, check_user_permission
+from emoji import emojize
 
 
 def get_who():
@@ -50,9 +51,9 @@ def show_list(header, contains, positions = None):
         if positions:
             for a in contains:
                 a_ordered = [a[i] for i in positions]
-                result.append("{} {}\n".format(telegram.Emoji.SMALL_BLUE_DIAMOND," ".join(a_ordered)))
+                result.append("{} {}\n".format(emojize(":small_blue_diamond:", use_aliases=True)," ".join(a_ordered)))
         else:
-            rows = ["{} {}\n".format(telegram.Emoji.SMALL_BLUE_DIAMOND ," ".join(a)) for a in contains]
+            rows = ["{} {}\n".format(emojize(":small_blue_diamond:", use_aliases=True) ," ".join(a)) for a in contains]
             result += rows
 
     return "".join(result)
