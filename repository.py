@@ -35,15 +35,15 @@ def add_to_event(event, name):
         c = conn.cursor()
         date = datetime.now().strftime("%d-%m-%y")
 
-        c.execute('insert into eventTable values(?, ?, ?)', (date, event.replace(" ",""), u'@'+name))
+        c.execute('insert into eventTable values(?, ?, ?)', (date, event.replace(" ", ""), u'@'+name))
         conn.commit()
         c.close()
         result =u'@' + name + ' añadido a ' + event
 
-    elif name:
+    elif not name:
         result = "No tienes nombre de usuario o alias. \n Es necesario para poder añadirte a un evento"
     else:
-        result = "No se ha podido añadir el usuario @" + name+ " a la lista " + name
+        result = "No se ha podido añadir el usuario @" + name + " a la lista"
 
     return result
 
