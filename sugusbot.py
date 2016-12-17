@@ -75,7 +75,6 @@ def main():
                 who = get_who()
 
                 if not who:
-                    #changes in emojis in python3 telegram version
                     send_text = u"Parece que no hay nadie... {}".format(emojize(":disappointed_face:", use_aliases=True))
                 else:
                     send_text = show_list(u"Miembros en SUGUS:", who)
@@ -107,7 +106,7 @@ def main():
                 send_text = add_permission_group(rtext)
 
             if check_type_and_text_start(aText= actText, cText='/groups', aType=actType, cType='private', cUId=message.from_user.id):
-                send_text = show_list(u"Grupos de permisos disponibles:", list_permission_group(), [0])
+                send_text = show_list(u"Grupos de permisos disponibles:", list_permission_group())
 
             if check_type_and_text_start(aText=actText, cText='/testingjoin', aType=actType, cType='private'):
                 rtext = actText.replace('/testingjoin','').replace(' ','')
@@ -119,7 +118,7 @@ def main():
             if check_type_and_text_start(aText= actText, cText='/testingparticipants', aType=actType, cType='private'):
                 rtext = actText.replace('/testingparticipants','').replace(' ','')
                 if not rtext:
-                    send_text = show_list(u"Elige una de las listas:", list_events(), [0])
+                    send_text = show_list(u"Elige una de las listas:", list_events())
                 else:
                     if len(find_by_event(rtext)) == 0:
                         send_text = u"No hay nadie en {}".format(rtext)
@@ -193,7 +192,7 @@ def helpTesting():
     contain = [['/testinghelp', 'Ayuda testing'], ['/testingjoin','Apuntarse a un evento']]
     contain = contain + [['/testingdisjoin','Desapuntarse de un evento'], ['/testingparticipants', 'Listar una lista']]
     contain = contain + [['/testingempty', 'Vaciar una lista']]
-    return show_list(header, contain, [0, 1])
+    return show_list(header, contain)
 
 
 if __name__ == '__main__':
