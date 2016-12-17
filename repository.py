@@ -35,7 +35,7 @@ def sec_init(id_admin):
 
 
 def add_to_event(event_name, user_id):
-    user = find_user_by_telegram_user_id(user_id=user_id)
+    user = find_user_by_telegram_user_id(telegram_user_id=user_id)
     event = find_event_by_name(event_name=event_name)
 
     if event and user:
@@ -79,20 +79,23 @@ def find_users_by_event(event_name):
     return result
 
 
-def remove_from_event(event, name):
+def remove_from_event(event_name, telegram_user_id):
 
-    result = "No implementado"
+    event = find_event_by_name(event_name=event_name)
+    user = find_user_by_telegram_user_id(telegram_user_id=telegram_user_id)
+    print(event)
 
-#    if any([('@' + name) in i for i in find_users_by_event(event)]):
-#        c = conn.cursor()
-#
-#        c.execute('delete from eventTable where event=? and name=?', (event, u'@' + name))
-#        conn.commit()
-#
-#        c.close()
-#        result = "Has sido eliminado del evento " + event
-#    else:
-#        result = "No estás en el evento " + event
+#    if any([('@' + name) in i for i in find_users_by_event(event_name)]):
+    if event and user:
+        c = conn.cursor()
+
+        c.execute('delete from rel_user_event where event=? and user=?', (event[0], user[0]))
+        conn.commit()
+
+        c.close()
+        result = "Has sido eliminado del evento " + event_name
+    else:
+        result = "Evento o usuario no encontrado"
 
     return result
 
@@ -130,9 +133,9 @@ def list_events():
     return h
 
 
-def find_user_by_telegram_user_id(user_id):
+def find_user_by_telegram_user_id(telegram_user_id):
     c = conn.cursor()
-    h = c.execute('select * from userTable where id_user_telegram=?', (user_id,)).fetchone()
+    h = c.execute('select * from userTable where id_user_telegram=?', (telegram_user_id,)).fetchone()
 
     c.close()
 

@@ -84,7 +84,7 @@ def main():
                 send_text = add_to_event('comida', act_user_id)
 
             if check_type_and_text_start(aText= actText, cText='/nocomo', aType=actType, cType='private'):
-                send_text = remove_from_event('comida', actUser)
+                send_text = remove_from_event('comida', act_user_id)
 
             if check_type_and_text_start(aText= actText, cText='/quiencome', aType=actType, cType='private'):
                 quiencome = find_users_by_event('comida')
@@ -137,7 +137,7 @@ def main():
 
             if check_type_and_text_start(aText= actText, cText='/leaveevent', aType=actType, cType='private'):
                 rtext = actText.replace('/leaveevent','').replace(' ','')
-                send_text = remove_from_event(rtext, actUser)
+                send_text = remove_from_event(rtext, act_user_id)
 
             if check_type_and_text_start(aText= actText, cText='/testinghelp', aType=actType, cType='private'): #, aType=actType, cType='private'):
                 send_text = helpTesting()
