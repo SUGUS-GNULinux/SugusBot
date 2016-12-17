@@ -4,7 +4,7 @@
 from urllib.request import urlopen
 from pyquery import PyQuery
 import telegram
-from repository import find_user_by_user_id, check_user_permission
+from repository import find_user_by_telegram_user_id, check_user_permission
 from emoji import emojize
 
 
@@ -35,7 +35,7 @@ def check_type_and_text_start(aText = None, aUName = None, cText = None, aType =
         result = aType == cType
     if cUId is not None:
         if perm_required is None:  # Comprobar solo usuario y permiso
-            result = result and find_user_by_user_id(cUId)
+            result = result and find_user_by_telegram_user_id(cUId)
         else:  # Comprobar usuario y permiso
             result = result and check_user_permission(cUId, perm_required)
     if cText is not None:
