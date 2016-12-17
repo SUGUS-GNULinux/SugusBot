@@ -5,6 +5,8 @@ import sqlite3
 from datetime import datetime
 
 conn = None
+user_cache = list()
+user_cache_last_update = None
 
 
 def connection(database):
@@ -188,3 +190,55 @@ def add_user_permission(id_user_telegram, permission):
         return "El rol indicado no existe"
 
     c.close()
+
+
+def update_user(id_user_telegram, user_name, force_update=False):
+    global user_cache, user_cache_last_update
+    result = None
+    stop = False
+    date = datetime.now().strftime("%j_%p")
+
+    if user_cache_last_update != date or force_update:
+        print("Clean user_cache")
+
+        user_cache = list()
+        user_cache_last_update = date
+
+    if id_user_telegram in user_cache:  # In cache
+        return stop, result
+    else:
+        user = find_user_by_telegram_user_id(telegram_user_id=id_user_telegram)
+
+        if user is not None and user[2] == '@' + user_name:  # In DB and not modified
+            user_cache.append(id_user_telegram)
+            return stop, result
+        elif user is not None:  # In DB modified
+            try:
+                c = conn.cursor()
+                c.execute('UPDATE userTable SET user_name = ? WHERE id_user_telegram = ?',
+                          ("@" + user_name, id_user_telegram))
+
+                conn.commit()
+                c.close()
+            except:
+                result = "No he podido actualizarte en la base de datos"
+                return True, result
+            finally:
+                user_cache.append(int(id_user_telegram))
+                return stop, result
+
+        else:
+            try:
+                c = conn.cursor()
+                c.execute('INSERT INTO userTable(id_user_telegram, user_name) VALUES (?, ?)',
+                          (id_user_telegram, "@" + user_name))
+
+                conn.commit()
+                c.close()
+            except:
+                result = "No he podido guardarte en la base de datos"
+                return True, result
+            finally:
+                user_cache.append(int(id_user_telegram))
+                return stop, result
+

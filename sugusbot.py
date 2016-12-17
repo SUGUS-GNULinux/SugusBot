@@ -14,6 +14,7 @@ import configparser
 from emoji import emojize
 
 from repository import connection, sec_init, add_to_event, find_users_by_event, remove_from_event, empty_event, list_events, add_permission_group, list_permission_group
+import repository
 from messaging import create_bot, getUpdates, sendMessages
 from auxilliary_methods import get_who, check_type_and_text_start, show_list
 
@@ -24,6 +25,9 @@ token = config['Telegram']['token']
 id_admin = config['Telegram']['id_admin']
 
 last_periodic_check = None
+
+# Get last update ID
+LAST_UPDATE_ID = None
 
 # Create bot object
 create_bot(token)
@@ -44,14 +48,11 @@ def main():
     # Discard old updates, sent before the bot was started
     num_discarded = 0
 
-    # Get last update ID
-    LAST_UPDATE_ID = None
-
     while True:
         updates = getUpdates(LAST_UPDATE_ID, timeout=1)
         if updates is not None and updates:
-            num_discarded = num_discarded + len(updates)
-            LAST_UPDATE_ID = updates[-1].update_id + 1
+            num_discarded += len(updates)
+            update_last_update_id(updates[-1].update_id)
         else:
             break
 
@@ -71,7 +72,15 @@ def main():
             actUser = message.from_user.username
             act_user_id = message.from_user.id
 
-            send_text = None
+            stop, send_text = repository.update_user(id_user_telegram=act_user_id, user_name=actUser)
+
+            if send_text:
+                sendMessages(send_text, chat_id)
+                update_last_update_id(update_id)
+                send_text = None
+
+            if stop:
+                break
 
             periodic_check()
 
@@ -159,7 +168,13 @@ def main():
             else:
                 print("Mensaje enviado y no publicado por: "+str(actUser))
 
-            LAST_UPDATE_ID = update_id + 1
+            update_last_update_id(update_id)
+
+
+def update_last_update_id(update_id):
+    global LAST_UPDATE_ID
+
+    LAST_UPDATE_ID = update_id + 1
 
 
 def periodic_check():
