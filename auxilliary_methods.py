@@ -53,7 +53,10 @@ def show_list(header, contains, positions = None):
                 a_ordered = [a[i] for i in positions]
                 result.append("{} {}\n".format(emojize(":small_blue_diamond:", use_aliases=True)," ".join(a_ordered)))
         else:
-            rows = ["{} {}\n".format(emojize(":small_blue_diamond:", use_aliases=True) ," ".join(a)) for a in contains]
+            if isinstance(contains[0], str):
+                rows = ["{} {}\n".format(emojize(":small_blue_diamond:", use_aliases=True) ,a) for a in contains]
+            else:
+                rows = ["{} {}\n".format(emojize(":small_blue_diamond:", use_aliases=True) ," ".join(a)) for a in contains]
             result += rows
 
     return "".join(result)
