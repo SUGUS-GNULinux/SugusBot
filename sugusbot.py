@@ -23,10 +23,13 @@ database = config['Database']['route']
 token = config['Telegram']['token']
 id_admin = config['Telegram']['id_admin']
 
+last_periodic_check = None
+
 # Create bot object
 create_bot(token)
 
 connection(database)
+
 
 def main():
 
@@ -161,10 +164,15 @@ def main():
 
 def periodic_check():
 
-    yesterdayDate = datetime.now() - timedelta(days = 1)
-    yesterdayDate = yesterdayDate.strftime("%d-%m-%y")
+    global last_periodic_check
 
-    empty_event('comida', yesterdayDate)
+    yesterday_date = datetime.now() - timedelta(days=1)
+    yesterday_date = yesterday_date.strftime("%d-%m-%y")
+
+    if last_periodic_check is yesterday_date:
+        empty_event('comida')
+
+        last_periodic_check = datetime.now().strftime("%d-%m-%y")
 
 
 def help():

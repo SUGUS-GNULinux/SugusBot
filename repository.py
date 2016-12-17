@@ -40,7 +40,7 @@ def add_to_event(event_name, user_id):
 
     if event and user:
         c = conn.cursor()
-        date = datetime.now().strftime("%d-%m-%y")
+        date = datetime.now().strftime("%d-%m-%y %H:%M:%S")
 
         c.execute('insert into rel_user_event values(?, ?, ?)', (user[0], event[0], date))
         conn.commit()
@@ -101,26 +101,22 @@ def remove_from_event(event_name, telegram_user_id):
 
 
 #el evento solo lo puede borrar un usuario con privilegios
-def empty_event(event, date=None):
+def empty_event(event_name):
 
-    result = "No implementado"
+    event = find_event_by_name(event_name=event_name)
 
-    # if find_users_by_event(event):
-    #     c = conn.cursor()
-    #
-    #     if date:
-    #         c.execute('DELETE FROM eventTable WHERE date=? AND event=?', (date,event))
-    #         result = "El evento " + event + " de " + date + " ha sido eliminado"
-    #     else:
-    #
-    #         c.execute('DELETE FROM eventTable WHERE event=?', (event,))
-    #         result = "El evento " + event +" ha sido eliminado"
-    #
-    #     conn.commit()
-    #
-    #     c.close()
-    # else:
-    #     result = 'El evento ' + event + ' no existe'
+    if event:
+        c = conn.cursor()
+
+        c.execute('DELETE FROM rel_user_event WHERE event=?', (event[0],))
+
+        result = "El evento " + event_name +" ha sido eliminado"
+
+        conn.commit()
+
+        c.close()
+    else:
+        result = 'El evento ' + event_name + ' no existe'
 
     return result
 
