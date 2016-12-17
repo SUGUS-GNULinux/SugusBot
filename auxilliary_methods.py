@@ -43,6 +43,7 @@ def check_type_and_text_start(aText = None, aUName = None, cText = None, aType =
 
     return result
 
+
 def show_list(header, contains, positions = None):
 
     result = [header + "\n"]
@@ -50,8 +51,8 @@ def show_list(header, contains, positions = None):
     if contains:
         if positions:
             for a in contains:
-                a_ordered = [a[i] for i in positions]
-                result.append("{} {}\n".format(emojize(":small_blue_diamond:", use_aliases=True)," ".join(a_ordered)))
+                a_ordered = [str(a[i]) for i in positions]
+                result.append("{} {}\n".format(emojize(":small_blue_diamond:", use_aliases=True), " ".join(a_ordered)))
         else:
             if isinstance(contains[0], str):
                 rows = ["{} {}\n".format(emojize(":small_blue_diamond:", use_aliases=True) ,a) for a in contains]

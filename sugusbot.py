@@ -89,7 +89,7 @@ def main():
             if check_type_and_text_start(aText= actText, cText='/quiencome', aType=actType, cType='private'):
                 quiencome = find_users_by_event('comida')
                 if quiencome:
-                    send_text = show_list(u"Hoy come en Sugus:", quiencome, [2, 0])
+                    send_text = show_list(u"Hoy come en Sugus:", quiencome, [2])
                 else:
                     send_text = 'De momento nadie come en Sugus'
 
@@ -133,7 +133,7 @@ def main():
                     if len(find_users_by_event(rtext)) == 0:
                         send_text = u"No hay nadie en {}".format(rtext)
                     else:
-                        send_text = show_list(u"Participantes en {}:".format(rtext), find_users_by_event(rtext), [0])
+                        send_text = show_list(u"Participantes en {}:".format(rtext), find_users_by_event(rtext), [2])
 
             if check_type_and_text_start(aText= actText, cText='/leaveevent', aType=actType, cType='private'):
                 rtext = actText.replace('/leaveevent','').replace(' ','')
