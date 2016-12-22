@@ -13,7 +13,8 @@ import configparser
 
 from emoji import emojize
 
-from repository import connection, sec_init, add_to_event, find_by_event, remove_from_event, empty_event, list_events, add_permission_group, list_permission_group
+from repository import connection, sec_init, add_to_event, find_users_by_event, remove_from_event, empty_event, list_events, add_permission_group, list_permission_group
+import repository
 from messaging import create_bot, getUpdates, sendMessages
 from auxilliary_methods import get_who, check_type_and_text_start, show_list
 
@@ -23,10 +24,16 @@ database = config['Database']['route']
 token = config['Telegram']['token']
 id_admin = config['Telegram']['id_admin']
 
+last_periodic_check = None
+
+# Get last update ID
+LAST_UPDATE_ID = None
+
 # Create bot object
 create_bot(token)
 
 connection(database)
+
 
 def main():
 
@@ -41,14 +48,11 @@ def main():
     # Discard old updates, sent before the bot was started
     num_discarded = 0
 
-    # Get last update ID
-    LAST_UPDATE_ID = None
-
     while True:
         updates = getUpdates(LAST_UPDATE_ID, timeout=1)
         if updates is not None and updates:
-            num_discarded = num_discarded + len(updates)
-            LAST_UPDATE_ID = updates[-1].update_id + 1
+            num_discarded += len(updates)
+            update_last_update_id(updates[-1].update_id)
         else:
             break
 
@@ -66,8 +70,17 @@ def main():
             chat_id = message.chat.id
             update_id = update.update_id
             actUser = message.from_user.username
+            act_user_id = message.from_user.id
 
-            send_text = None
+            stop, send_text = repository.update_user(id_user_telegram=act_user_id, user_name=actUser)
+
+            if send_text:
+                sendMessages(send_text, chat_id)
+                update_last_update_id(update_id)
+                send_text = None
+
+            if stop:
+                break
 
             periodic_check()
 
@@ -80,15 +93,15 @@ def main():
                     send_text = show_list(u"Miembros en SUGUS:", who)
 
             if check_type_and_text_start(aText= actText, cText='/como', aType=actType, cType='private'):
-                send_text = add_to_event('comida', actUser)
+                send_text = add_to_event('comida', act_user_id)
 
             if check_type_and_text_start(aText= actText, cText='/nocomo', aType=actType, cType='private'):
-                send_text = remove_from_event('comida', actUser)
+                send_text = remove_from_event('comida', act_user_id)
 
             if check_type_and_text_start(aText= actText, cText='/quiencome', aType=actType, cType='private'):
-                quiencome = find_by_event('comida')
+                quiencome = find_users_by_event('comida')
                 if quiencome:
-                    send_text = show_list(u"Hoy come en Sugus:", quiencome, [2, 0])
+                    send_text = show_list(u"Hoy come en Sugus:", quiencome, [2])
                 else:
                     send_text = 'De momento nadie come en Sugus'
 
@@ -98,9 +111,6 @@ def main():
             if check_type_and_text_start(aText=actText, cText='/group', aType=actType, cType='private'):
                 send_text = help_group()
 
-            if check_type_and_text_start(aText=actText, cText='/events', aType=actType, cType='private'):
-                send_text = help_event()
-
             if check_type_and_text_start(aText=actText, cText='/groupadd', aType=actType, cType='private', cUId=message.from_user.id, perm_required="admin"):
                 rtext = actText.replace('/groupadd ','').replace('/groupadd','')
                 send_text = add_permission_group(rtext)
@@ -108,26 +118,38 @@ def main():
             if check_type_and_text_start(aText= actText, cText='/groups', aType=actType, cType='private', cUId=message.from_user.id):
                 send_text = show_list(u"Grupos de permisos disponibles:", list_permission_group())
 
-            if check_type_and_text_start(aText=actText, cText='/testingjoin', aType=actType, cType='private'):
-                rtext = actText.replace('/testingjoin','').replace(' ','')
-                if not rtext:
-                    send_text = u"Elige un evento /testingparticipants"
-                else:
-                    add_to_event(rtext, actUser)
+            if check_type_and_text_start(aText=actText, cText='/helpevents', aType=actType, cType='private'):
+                send_text = help_event()
 
-            if check_type_and_text_start(aText= actText, cText='/testingparticipants', aType=actType, cType='private'):
-                rtext = actText.replace('/testingparticipants','').replace(' ','')
+            if check_type_and_text_start(aText=actText, cText='/events', aType=actType, cType='private'):
+                send_text = show_list(u"Elige una de las listas:", list_events(), [0])
+
+            if check_type_and_text_start(aText=actText, cText='/addevent', aType=actType, cType='private'):
+                send_text = "No disponible"
+
+            if check_type_and_text_start(aText=actText, cText='/removeevent', aType=actType, cType='private'):
+                send_text = "No disponible"
+
+            if check_type_and_text_start(aText=actText, cText='/jointoevent', aType=actType, cType='private'):
+                rtext = actText.replace('/jointoevent','').replace(' ','')
+                if not rtext:
+                    send_text = u"Elige un evento /events"
+                else:
+                    add_to_event(rtext, act_user_id)
+
+            if check_type_and_text_start(aText= actText, cText='/participants', aType=actType, cType='private'):
+                rtext = actText.replace('/participants','').replace(' ','')
                 if not rtext:
                     send_text = show_list(u"Elige una de las listas:", list_events())
                 else:
-                    if len(find_by_event(rtext)) == 0:
+                    if len(find_users_by_event(rtext)) == 0:
                         send_text = u"No hay nadie en {}".format(rtext)
                     else:
-                        send_text = show_list(u"Participantes en {}:".format(rtext), find_by_event(rtext), [2, 0])
+                        send_text = show_list(u"Participantes en {}:".format(rtext), find_users_by_event(rtext), [2])
 
-            if check_type_and_text_start(aText= actText, cText='/testingdisjoin', aType=actType, cType='private'):
-                rtext = actText.replace('/testingdisjoin','').replace(' ','')
-                send_text = remove_from_event(rtext, actUser)
+            if check_type_and_text_start(aText= actText, cText='/leaveevent', aType=actType, cType='private'):
+                rtext = actText.replace('/leaveevent','').replace(' ','')
+                send_text = remove_from_event(rtext, act_user_id)
 
             if check_type_and_text_start(aText= actText, cText='/testinghelp', aType=actType, cType='private'): #, aType=actType, cType='private'):
                 send_text = helpTesting()
@@ -146,22 +168,33 @@ def main():
             else:
                 print("Mensaje enviado y no publicado por: "+str(actUser))
 
-            LAST_UPDATE_ID = update_id + 1
+            update_last_update_id(update_id)
+
+
+def update_last_update_id(update_id):
+    global LAST_UPDATE_ID
+
+    LAST_UPDATE_ID = update_id + 1
 
 
 def periodic_check():
 
-    yesterdayDate = datetime.now() - timedelta(days = 1)
-    yesterdayDate = yesterdayDate.strftime("%d-%m-%y")
+    global last_periodic_check
 
-    empty_event('comida',yesterdayDate)
+    yesterday_date = datetime.now() - timedelta(days=1)
+    yesterday_date = yesterday_date.strftime("%d-%m-%y")
+
+    if last_periodic_check is yesterday_date:
+        empty_event('comida')
+
+        last_periodic_check = datetime.now().strftime("%d-%m-%y")
 
 
 def help():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/comida','Opciones de comida']]
     contain = contain + [['/group', 'Opciones de permisos']]
-    contain = contain + [['/events', 'Opciones de eventos']]
+    contain = contain + [['/helpevents', 'Opciones de eventos']]
     contain = contain +[['/testinghelp', 'Ayuda testing']]
     return show_list(header, contain)
 
@@ -176,8 +209,8 @@ def help_eat():
 def help_event():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda']]
-    contain = contain + [['/events', 'Listar eventos'], ['/addevent', 'Añadir un evento'], ['/jointoevent', 'Unirte a un evento']]
-    contain = contain + [['/leaveevent', 'Abandonar un evento'], ['/removeevent', 'Eliminar un evento']]
+    contain += [['/events', 'Listar eventos'], ['/addevent', 'Añadir un evento'], ['/removeevent', 'Eliminar un evento']]
+    contain += [['/leaveevent', 'Abandonar un evento'], ['/jointoevent', 'Unirte a un evento'], ['/participants', 'Listar participantes']]
     return show_list(header, contain)
 
 def help_group():

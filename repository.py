@@ -5,6 +5,9 @@ import sqlite3
 from datetime import datetime
 
 conn = None
+user_cache = list()
+user_cache_last_update = None
+
 
 def connection(database):
     global conn
@@ -13,8 +16,9 @@ def connection(database):
 
 def sec_init(id_admin):
     c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS eventTable(date TEXT, event TEXT, name TEXT, UNIQUE(date, event, name) ON CONFLICT REPLACE)')
+    c.execute('CREATE TABLE IF NOT EXISTS event_table(id_event INTEGER PRIMARY KEY, date TEXT, name TEXT, UNIQUE(date, name))')
     c.execute('CREATE TABLE IF NOT EXISTS userTable(id_user INTEGER PRIMARY KEY, id_user_telegram NUMBER UNIQUE, user_name text UNIQUE)')
+    c.execute('CREATE TABLE IF NOT EXISTS rel_user_event(user INTEGER, event INTEGER, date TEXT, FOREIGN KEY(user) REFERENCES userTable(id_user), FOREIGN KEY(event) REFERENCES event_table(id_event), UNIQUE(user, event) ON CONFLICT REPLACE)')
     c.execute('CREATE TABLE IF NOT EXISTS permissionTable(id_permission INTEGER PRIMARY KEY, permission TEXT, UNIQUE(permission))')
     c.execute('CREATE TABLE IF NOT EXISTS rel_user_permission(user INTEGER, permission INTEGER, FOREIGN KEY(user) REFERENCES userTable(id_user), FOREIGN KEY(permission) REFERENCES permissionTable(id_permission))')
 
@@ -25,92 +29,111 @@ def sec_init(id_admin):
         permission = c.execute('SELECT id_permission FROM permissionTable WHERE permission = ?', ('admin',)).fetchone()[0]
         c.execute('INSERT INTO rel_user_permission VALUES (?, ?)', (1, permission))
 
+    if not c.execute('SELECT COUNT(*) FROM event_table').fetchone()[0]:
+        c.execute('INSERT INTO event_table(date, name) VALUES (?, ?)', ("", "comida"))
+
     conn.commit()
     c.close()
 
 
-def add_to_event(event, name):
+def add_to_event(event_name, user_id):
+    user = find_user_by_telegram_user_id(telegram_user_id=user_id)
+    event = find_event_by_name(event_name=event_name)
 
-    if event and name:
+    if event and user:
         c = conn.cursor()
-        date = datetime.now().strftime("%d-%m-%y")
+        date = datetime.now().strftime("%d-%m-%y %H:%M:%S")
 
-        c.execute('insert into eventTable values(?, ?, ?)', (date, event.replace(" ", ""), u'@'+name))
+        c.execute('insert into rel_user_event values(?, ?, ?)', (user[0], event[0], date))
         conn.commit()
         c.close()
-        result =u'@' + name + ' añadido a ' + event
+        result = "añadido a " + event_name
 
-    elif not name:
-        result = "No tienes nombre de usuario o alias. \n Es necesario para poder añadirte a un evento"
+    elif not user:
+        result = "No estás registrado en el sistema"
     else:
-        result = "No se ha podido añadir el usuario @" + name + " a la lista"
+        result = "Evento no encontrado"
 
     return result
 
 
-def find_by_event(event):
+def find_event_by_name(event_name):
     c = conn.cursor()
-
-    result = c.execute('select * from eventTable where event=?', (event.replace(" ",""),)).fetchall()
+    h = c.execute('select * from event_table where name=?', (event_name,)).fetchone()
 
     c.close()
 
+    return h
+
+
+def find_users_by_event(event_name):
+    event = find_event_by_name(event_name=event_name)
+
+    if event:
+        c = conn.cursor()
+
+        result = c.execute('SELECT * FROM userTable INNER JOIN rel_user_event ON userTable.id_user = rel_user_event.user where rel_user_event.event = ?', (event[0],)).fetchall()
+
+        c.close()
+    else:
+        result = "Evento no encontrado"
+
     return result
 
 
-def remove_from_event(event, name):
+def remove_from_event(event_name, telegram_user_id):
 
-    if any([('@' + name) in i for i in find_by_event(event)]):
+    event = find_event_by_name(event_name=event_name)
+    user = find_user_by_telegram_user_id(telegram_user_id=telegram_user_id)
+    print(event)
+
+#    if any([('@' + name) in i for i in find_users_by_event(event_name)]):
+    if event and user:
         c = conn.cursor()
 
-        c.execute('delete from eventTable where event=? and name=?', (event, u'@' + name))
+        c.execute('delete from rel_user_event where event=? and user=?', (event[0], user[0]))
         conn.commit()
 
         c.close()
-        result = "Has sido eliminado del evento " + event
+        result = "Has sido eliminado del evento " + event_name
     else:
-        result = "No estás en el evento " + event
+        result = "Evento o usuario no encontrado"
 
     return result
 
 
 #el evento solo lo puede borrar un usuario con privilegios
-def empty_event(event, date=None):
+def empty_event(event_name):
 
-    if find_by_event(event):
+    event = find_event_by_name(event_name=event_name)
+
+    if event:
         c = conn.cursor()
 
-        if date:
-            c.execute('DELETE FROM eventTable WHERE date=? AND event=?', (date,event))
-            result = "El evento " + event + " de " + date + " ha sido eliminado"
-        else:
+        c.execute('DELETE FROM rel_user_event WHERE event=?', (event[0],))
 
-            c.execute('DELETE FROM eventTable WHERE event=?', (event,))
-            result = "El evento " + event +" ha sido eliminado"
+        result = "El evento " + event_name +" ha sido eliminado"
 
         conn.commit()
 
         c.close()
     else:
-        result = 'El evento ' + event + ' no existe'
+        result = 'El evento ' + event_name + ' no existe'
 
     return result
 
 
 def list_events():
     c = conn.cursor()
-    h = c.execute('select distinct event from eventTable')
+    h = c.execute('select distinct name from event_table').fetchall()
     c.close()
 
     return h
 
 
-def find_user_by_user_id(user_id):
+def find_user_by_telegram_user_id(telegram_user_id):
     c = conn.cursor()
-    h = c.execute('select * from userTable where id_user_telegram=?', (user_id,)).fetchone()
-
-    if h:
-        h = h[0]
+    h = c.execute('select * from userTable where id_user_telegram=?', (telegram_user_id,)).fetchone()
 
     c.close()
 
@@ -167,3 +190,55 @@ def add_user_permission(id_user_telegram, permission):
         return "El rol indicado no existe"
 
     c.close()
+
+
+def update_user(id_user_telegram, user_name, force_update=False):
+    global user_cache, user_cache_last_update
+    result = None
+    stop = False
+    date = datetime.now().strftime("%j_%p")
+
+    if user_cache_last_update != date or force_update:
+        print("Clean user_cache")
+
+        user_cache = list()
+        user_cache_last_update = date
+
+    if id_user_telegram in user_cache:  # In cache
+        return stop, result
+    else:
+        user = find_user_by_telegram_user_id(telegram_user_id=id_user_telegram)
+
+        if user is not None and user[2] == '@' + user_name:  # In DB and not modified
+            user_cache.append(id_user_telegram)
+            return stop, result
+        elif user is not None:  # In DB modified
+            try:
+                c = conn.cursor()
+                c.execute('UPDATE userTable SET user_name = ? WHERE id_user_telegram = ?',
+                          ("@" + user_name, id_user_telegram))
+
+                conn.commit()
+                c.close()
+            except:
+                result = "No he podido actualizarte en la base de datos"
+                return True, result
+            finally:
+                user_cache.append(int(id_user_telegram))
+                return stop, result
+
+        else:
+            try:
+                c = conn.cursor()
+                c.execute('INSERT INTO userTable(id_user_telegram, user_name) VALUES (?, ?)',
+                          (id_user_telegram, "@" + user_name))
+
+                conn.commit()
+                c.close()
+            except:
+                result = "No he podido guardarte en la base de datos"
+                return True, result
+            finally:
+                user_cache.append(int(id_user_telegram))
+                return stop, result
+
