@@ -85,7 +85,6 @@ def remove_from_event(event_name, telegram_user_id):
 
     event = find_event_by_name(event_name=event_name)
     user = find_user_by_telegram_user_id(telegram_user_id=telegram_user_id)
-    print(event)
 
 #    if any([('@' + name) in i for i in find_users_by_event(event_name)]):
     if event and user:
@@ -170,7 +169,7 @@ def list_permission_group():
 
     h = c.execute('SELECT permission FROM permissionTable').fetchall()
     if h:
-        h = [i[0] for i in c.execute('SELECT permission FROM permissionTable').fetchall()]
+        h = [i[0] for i in h]
 
     c.close()
     return h
@@ -209,10 +208,10 @@ def update_user(id_user_telegram, user_name, force_update=False):
     else:
         user = find_user_by_telegram_user_id(telegram_user_id=id_user_telegram)
 
-        if user is not None and user[2] == '@' + user_name:  # In DB and not modified
+        if user and user[2] == '@' + user_name:  # In DB and not modified
             user_cache.append(id_user_telegram)
             return stop, result
-        elif user is not None:  # In DB modified
+        elif user:  # In DB modified
             try:
                 c = conn.cursor()
                 c.execute('UPDATE userTable SET user_name = ? WHERE id_user_telegram = ?',
@@ -241,4 +240,3 @@ def update_user(id_user_telegram, user_name, force_update=False):
             finally:
                 user_cache.append(int(id_user_telegram))
                 return stop, result
-
