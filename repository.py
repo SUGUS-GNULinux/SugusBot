@@ -35,6 +35,16 @@ def sec_init(id_admin):
     conn.commit()
     c.close()
 
+def add_event(event_name, event_date):
+
+    if not find_event_by_name(event_name):
+        c = conn.cursor()
+        c.execute('INSERT INTO event_table(date, name) VALUES (?, ?)', (event_date, event_name))
+        conn.commit()
+        c.close()
+        result = "Evento " + event_name + " creado"
+    else:
+        result = "El evento " + event_name + " ya existe"
 
 def add_to_event(event_name, user_id):
     user = find_user_by_telegram_user_id(telegram_user_id=user_id)
@@ -101,7 +111,7 @@ def remove_from_event(event_name, telegram_user_id):
     return result
 
 
-#el evento solo lo puede borrar un usuario con privilegios
+#el evento solo lo puede vaciar un usuario con privilegios
 def empty_event(event_name):
 
     event = find_event_by_name(event_name=event_name)
@@ -111,7 +121,7 @@ def empty_event(event_name):
 
         c.execute('DELETE FROM rel_user_event WHERE event=?', (event[0],))
 
-        result = "El evento " + event_name +" ha sido eliminado"
+        result = "El evento " + event_name +" ha sido vaciado de usuarios"
 
         conn.commit()
 
@@ -128,6 +138,19 @@ def list_events():
     c.close()
 
     return h
+
+#el evento solo lo puede borrar un usuario con privilegios
+def remove_event(event_name):
+    event = find_event_by_name(event_name=event_name)
+
+    if event:
+        c = conn.cursor()
+        h = c.execute('DELETE FROM event_table WHERE name=?', (event_name,))
+        result = "El evento " + event_name + " ha sido eliminado"
+        conn.commit()
+        c.close()
+    else:
+        result = "El evento " + event_name + " no existe"
 
 
 def find_user_by_telegram_user_id(telegram_user_id):
