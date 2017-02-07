@@ -11,6 +11,7 @@ import string
 
 import codecs
 import sys
+import os
 
 import sqlite3
 from datetime import datetime
@@ -278,7 +279,10 @@ if __name__ == '__main__':
         try:
             main()
         except Exception as e:
-            with open('log','w+') as file:
-                file.write(str(datetime.now().strftime("%d-%m-%y"))+"\n")
-                file.write(str(e)+"\n")
-            pass
+            if os.stat('log').st_size > 1024:
+                permission = 'w'
+            else:
+                permission = 'a'
+            with open('log',permission) as f:
+                f.write(str(datetime.now().strftime("%d-%m-%y"))+"\n")
+                f.write(str(e)+"\n")
