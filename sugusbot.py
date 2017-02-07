@@ -195,7 +195,7 @@ def sendMessages(send_text, chat_id):
 def getWho():
     while True:
         try:
-            url = 'http://sugus.eii.us.es/en_sugus.html'
+            url = 'https://sugus.eii.us.es/en_sugus.html'
             #html = AssertionErrorurlopen(url).read()
             html = urlopen(url).read()
             pq = PyQuery(html)
