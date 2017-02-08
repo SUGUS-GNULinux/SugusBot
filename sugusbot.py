@@ -116,6 +116,16 @@ def main():
                 rtext = actText.replace('/groupadd ','').replace('/groupadd','')
                 send_text = add_permission_group(rtext)
 
+            if check_type_and_text_start(aText=actText, cText='/addtogroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required="admin"):
+                rtext = actText.replace('/addtogroup ','').replace('/addtogroup','').split(" ")
+                db_user = repository.find_user_by_telegram_user_name(rtext[0])
+                if len(rtext) != 2:
+                    send_text = "Formato incorrecto. El formato debe ser: \n '/addtogroup @username group_name'"
+                elif not db_user:
+                    send_text = "Nombre de usuario '" + rtext[0] + "' no encontrado en la base de datos"
+                else:
+                    send_text = repository.add_user_permission(db_user[1], rtext[1])
+
             if check_type_and_text_start(aText= actText, cText='/groups', aType=actType, cType='private', cUId=message.from_user.id):
                 send_text = show_list(u"Grupos de permisos disponibles:", list_permission_group())
 

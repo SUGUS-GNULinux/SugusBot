@@ -163,6 +163,18 @@ def find_user_by_telegram_user_id(telegram_user_id):
     return h
 
 
+def find_user_by_telegram_user_name(telegram_user_name):
+
+    if not telegram_user_name.startswith("@"):
+        telegram_user_name = "@" + telegram_user_name
+
+    c = conn.cursor()
+    h = c.execute('select * from userTable where user_name=?', (telegram_user_name,)).fetchone()
+
+    c.close()
+
+    return h
+
 def check_user_permission(user_id, permission):
     c = conn.cursor()
     h = c.execute('select * from userTable INNER JOIN rel_user_permission ON userTable.id_user = rel_user_permission.user INNER JOIN permissionTable ON permissionTable.id_permission = rel_user_permission.permission where userTable.id_user_telegram = ? and permissionTable.permission = ?', (user_id, permission)).fetchone()
@@ -202,17 +214,16 @@ def list_permission_group():
 def add_user_permission(id_user_telegram, permission):
     c = conn.cursor()
     permission = c.execute('SELECT id_permission FROM permissionTable WHERE permission = ?', (permission,)).fetchone()
+    ret = "El rol indicado no existe"
 
     if permission:
-        c.execute('INSERT INTO userTable(id_user_telegram) VALUES (?)', (id_user_telegram,))
         id_user = c.execute('SELECT id_user from userTable WHERE id_user_telegram = ?', (id_user_telegram,)).fetchone()[0]
         c.execute('INSERT INTO rel_user_permission VALUES (?, ?)', (id_user, permission[0]))
         conn.commit()
-        return "Rol añadido a usuario " + str(id_user_telegram)
-    else:
-        return "El rol indicado no existe"
+        ret = "Rol añadido a usuario " + str(id_user_telegram)
 
     c.close()
+    return ret
 
 
 def update_user(id_user_telegram, user_name, force_update=False):
