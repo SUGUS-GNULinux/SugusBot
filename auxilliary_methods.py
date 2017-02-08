@@ -12,7 +12,7 @@ def get_who():
 
     while True:
         try:
-            url = 'http://sugus.eii.us.es/en_sugus.html'
+            url = 'https://sugus.eii.us.es/en_sugus.html'
             #html = AssertionErrorurlopen(url).read()
             html = urlopen(url).read()
             pq = PyQuery(html)
