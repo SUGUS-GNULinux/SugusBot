@@ -68,7 +68,8 @@ def show_list(header, contains, positions = None):
 
 def check_date(date):
     try:
-        datetime.datetime.strptime(date, '%d-%m-%Y')
+        if datetime.datetime.strptime(date + " 23:59:59", '%d-%m-%Y %H:%M:%S') < datetime.datetime.today():
+            return False
     except ValueError:
         return False
     else:
