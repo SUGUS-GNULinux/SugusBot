@@ -35,6 +35,7 @@ def sec_init(id_admin):
     conn.commit()
     c.close()
 
+
 def add_event(event_name, event_date):
 
     if not find_event_by_name(event_name):
@@ -42,9 +43,9 @@ def add_event(event_name, event_date):
         c.execute('INSERT INTO event_table(date, name) VALUES (?, ?)', (event_date, event_name))
         conn.commit()
         c.close()
-        result = "Evento " + event_name + " creado"
+        return "Evento " + event_name + " creado"
     else:
-        result = "El evento " + event_name + " ya existe"
+        return "El evento " + event_name + " ya existe"
 
 def add_to_event(event_name, user_id):
     user = find_user_by_telegram_user_id(telegram_user_id=user_id)

@@ -17,6 +17,7 @@ from repository import connection, sec_init, add_to_event, find_users_by_event, 
 import repository
 from messaging import create_bot, getUpdates, sendMessages
 from auxilliary_methods import get_who, check_type_and_text_start, show_list
+import auxilliary_methods
 
 config = configparser.ConfigParser()
 config.read('myconfig.ini')
@@ -125,7 +126,14 @@ def main():
                 send_text = show_list(u"Elige una de las listas:", list_events(), [0])
 
             if check_type_and_text_start(aText=actText, cText='/addevent', aType=actType, cType='private'):
-                send_text = "No disponible"
+                rtext = actText.replace('/addevent ','').replace('/addevent','').split(" ")
+                if len(rtext) < 2:
+                    send_text = "Formato incorrecto. EL formato debe ser: \n '/addevent nombre evento dd-mm-aaaa'"
+                elif not auxilliary_methods.check_date(rtext[len(rtext) - 1]):
+                    send_text = "Formato de fecha incorrecto. Esperado 'dd-mm-aaaa'"
+                else:
+                    event_name = ' '.join([str(x) for x in rtext[0:len(rtext) - 1]])
+                    send_text = repository.add_event(event_name=event_name, event_date=rtext[len(rtext) - 1])
 
             if check_type_and_text_start(aText=actText, cText='/removeevent', aType=actType, cType='private'):
                 send_text = "No disponible"

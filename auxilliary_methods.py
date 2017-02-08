@@ -6,6 +6,7 @@ from pyquery import PyQuery
 import telegram
 from repository import find_user_by_telegram_user_id, check_user_permission
 from emoji import emojize
+import datetime
 
 
 def get_who():
@@ -61,3 +62,12 @@ def show_list(header, contains, positions = None):
             result += rows
 
     return "".join(result)
+
+
+def check_date(date):
+    try:
+        datetime.datetime.strptime(date, '%d-%m-%Y')
+    except ValueError:
+        return False
+    else:
+        return True
