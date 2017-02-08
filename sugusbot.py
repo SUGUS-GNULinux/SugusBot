@@ -207,7 +207,6 @@ def periodic_check():
 
         last_periodic_check = datetime.now().strftime("%d-%m-%y")
 
-
 def help():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/comida','Opciones de comida']]
