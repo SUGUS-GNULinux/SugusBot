@@ -112,11 +112,11 @@ def main():
             if check_type_and_text_start(aText=actText, cText='/group', aType=actType, cType='private'):
                 send_text = help_group()
 
-            if check_type_and_text_start(aText=actText, cText='/groupadd', aType=actType, cType='private', cUId=message.from_user.id, perm_required="admin"):
+            if check_type_and_text_start(aText=actText, cText='/groupadd', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin"]):
                 rtext = actText.replace('/groupadd ','').replace('/groupadd','')
                 send_text = add_permission_group(rtext)
 
-            if check_type_and_text_start(aText=actText, cText='/addtogroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required="admin"):
+            if check_type_and_text_start(aText=actText, cText='/addtogroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin", "sugus"]):
                 rtext = actText.replace('/addtogroup ','').replace('/addtogroup','').split(" ")
                 db_user = repository.find_user_by_telegram_user_name(rtext[0])
                 if len(rtext) != 2:

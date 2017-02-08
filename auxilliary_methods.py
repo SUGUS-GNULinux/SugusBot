@@ -37,8 +37,10 @@ def check_type_and_text_start(aText = None, aUName = None, cText = None, aType =
     if cUId is not None:
         if perm_required is None:  # Comprobar solo usuario y permiso
             result = result and find_user_by_telegram_user_id(cUId)
-        else:  # Comprobar usuario y permiso
-            result = result and check_user_permission(cUId, perm_required)
+        else:  # Comprobar usuario y permisos
+            for a in perm_required:
+                if check_user_permission(cUId, a):
+                    result = result and True
     if cText is not None:
         result = result and aText.startswith(cText)
 
