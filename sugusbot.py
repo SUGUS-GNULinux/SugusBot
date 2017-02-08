@@ -6,6 +6,7 @@ import telegram
 
 import codecs
 import sys
+import os
 
 from datetime import datetime, timedelta
 
@@ -250,6 +251,10 @@ if __name__ == '__main__':
         try:
             main()
         except Exception as e:
-            with open('log','a') as f:
+            if os.stat('log').st_size > 1024:
+                permission = 'w'
+            else:
+                permission = 'a'
+            with open('log', permission) as f:
                 f.write(str(datetime.now().strftime("%d-%m-%y"))+"\n")
                 f.write(str(e)+"\n")

@@ -1,0 +1,4 @@
+pyquery
+python-telegram-bot
+cssselect
+lxml
