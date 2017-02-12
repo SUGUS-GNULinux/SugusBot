@@ -178,13 +178,9 @@ def find_user_by_telegram_user_name(telegram_user_name):
 def check_user_permission(user_id, permission):
     c = conn.cursor()
     h = c.execute('select * from userTable INNER JOIN rel_user_permission ON userTable.id_user = rel_user_permission.user INNER JOIN permissionTable ON permissionTable.id_permission = rel_user_permission.permission where userTable.id_user_telegram = ? and permissionTable.permission = ?', (user_id, permission)).fetchone()
-
-    if h:
-        h = h[0]
-
     c.close()
 
-    return h
+    return bool(h)
 
 
 def add_permission_group(permission_name):
