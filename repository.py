@@ -182,6 +182,19 @@ def check_user_permission(user_id, permission):
 
     return bool(h)
 
+def remove_from_group(user_id, permission):
+    if check_user_permission(user_id, permission):
+        c = conn.cursor()
+        h = c.execute('DELETE from rel_user_permission where user='
+        '(SELECT id_user FROM userTable where id_user_telegram=?) '
+        'and permission=(SELECT id_permission FROM permissionTable '
+        'WHERE permission=?)', (user_id, permission))
+        conn.commit()
+        c.close()
+        result = "El usuario ha sido eliminado del grupo " + permission
+    else:
+        result = "El usuario no se encuentra en el grupo " + permission
+    return result
 
 def add_permission_group(permission_name):
     if permission_name and permission_name is not " ":
