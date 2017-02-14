@@ -112,9 +112,9 @@ def main():
 
             if check_type_and_text_start(aText=actText, cText='/group', aType=actType, cType='private'):
                 send_text = help_group()
-
-            if check_type_and_text_start(aText=actText, cText='/groupadd', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin"]):
-                rtext = actText.replace('/groupadd ','').replace('/groupadd','')
+            #comprobar comando
+            if check_type_and_text_start(aText=actText, cText='/addgroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin"]):
+                rtext = actText.replace('/addgroup ','').replace('/addgroup','')
                 send_text = add_permission_group(rtext)
 
             if check_type_and_text_start(aText=actText, cText='/addtogroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin", "sugus"]):
@@ -127,10 +127,17 @@ def main():
                 else:
                     send_text = repository.add_user_permission(db_user[1], rtext[1])
 
+            if check_type_and_text_start(aText=actText, cText='/quitgroup', aType=actType, cType='private', cUId=message.from_user.id):
+                msg = actText.split(" ")
+                if len(msg) != 2:
+                    send_text = "Has introducido el comando de manera incorrecta. El formato debe ser:\n'/quitgroup'"
+                else:
+                    send_text = remove_from_group(user_id, permission)
+
             if check_type_and_text_start(aText= actText, cText='/groups', aType=actType, cType='private', cUId=message.from_user.id):
                 send_text = show_list(u"Grupos de permisos disponibles:", list_permission_group())
 
-            if check_type_and_text_start(aText=actText, cText='/helpevents', aType=actType, cType='private'):
+            if check_type_and_text_start(aText=actText, cText='/event', aType=actType, cType='private'):
                 send_text = help_event()
 
             if check_type_and_text_start(aText=actText, cText='/events', aType=actType, cType='private'):
@@ -170,16 +177,6 @@ def main():
                 rtext = actText.replace('/leaveevent','').replace(' ','')
                 send_text = remove_from_event(rtext, act_user_id)
 
-            if check_type_and_text_start(aText= actText, cText='/testinghelp', aType=actType, cType='private'): #, aType=actType, cType='private'):
-                send_text = helpTesting()
-
-            if check_type_and_text_start(aText= actText, cText='/testingempty', aType=actType, cType='private'):
-                rtext = actText.replace('/testingempty','').replace(' ','')
-                if rtext != 'comida':
-                    send_text = empty_event(rtext, actUser)
-                else:
-                    send_text = 'No soy tonto, no voy a dejar que borres quien come hoy'
-
             if send_text != None:
                 sendMessages(send_text, chat_id)
             elif check_type_and_text_start(aType=actType, cType='private'):
@@ -212,8 +209,7 @@ def help():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/comida','Opciones de comida']]
     contain = contain + [['/group', 'Opciones de permisos']]
-    contain = contain + [['/helpevents', 'Opciones de eventos']]
-    contain = contain +[['/testinghelp', 'Ayuda testing']]
+    contain = contain + [['/event', 'Opciones de eventos']]
     return show_list(header, contain)
 
 
@@ -231,18 +227,11 @@ def help_event():
     contain += [['/leaveevent', 'Abandonar un evento'], ['/jointoevent', 'Unirte a un evento'], ['/participants', 'Listar participantes']]
     return show_list(header, contain)
 
+
 def help_group():
     header = "Elige una de las opciones: "
-    contain = [['/help', 'Ayuda']]
-    contain = contain + [['/groups', 'Listar grupos'], ['/groupadd', 'Añadir un grupo']]
-    return show_list(header, contain)
-
-
-def helpTesting():
-    header = "Elige una de las opciones: "
-    contain = [['/testinghelp', 'Ayuda testing'], ['/testingjoin','Apuntarse a un evento']]
-    contain = contain + [['/testingdisjoin','Desapuntarse de un evento'], ['/testingparticipants', 'Listar una lista']]
-    contain = contain + [['/testingempty', 'Vaciar una lista']]
+    contain = [['/help', 'Ayuda'], ['/groups', 'Listar grupos'], ['/addgroup', 'Añadir un grupo']]
+    contain += [['/addtogroup', 'Añadir a alguien a un grupo'], ['/quitgroup', 'Sacar a alguien de un grupo']]
     return show_list(header, contain)
 
 
