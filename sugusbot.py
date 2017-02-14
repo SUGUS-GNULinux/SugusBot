@@ -251,7 +251,7 @@ if __name__ == '__main__':
         try:
             main()
         except Exception as e:
-            if os.stat('log').st_size > 1024:
+            if os.path.isfile('log') and os.stat('log').st_size > 1024:
                 permission = 'w'
             else:
                 permission = 'a'
