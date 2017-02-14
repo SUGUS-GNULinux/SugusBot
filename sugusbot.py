@@ -14,7 +14,7 @@ import configparser
 
 from emoji import emojize
 
-from repository import connection, sec_init, add_to_event, find_users_by_event, remove_from_event, empty_event, list_events, add_permission_group, list_permission_group
+from repository import *
 import repository
 from messaging import create_bot, getUpdates, sendMessages
 from auxilliary_methods import get_who, check_type_and_text_start, show_list
@@ -74,7 +74,7 @@ def main():
             actUser = message.from_user.username
             act_user_id = message.from_user.id
 
-            stop, send_text = repository.update_user(id_user_telegram=act_user_id, user_name=actUser)
+            stop, send_text = update_user(id_user_telegram=act_user_id, user_name=actUser)
 
             if send_text:
                 sendMessages(send_text, chat_id)
