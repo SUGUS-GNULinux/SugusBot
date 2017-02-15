@@ -110,7 +110,7 @@ def main():
 
             if check_type_and_text_start(aText=actText, cText='/group', aType=actType, cType='private'):
                 send_text = help_group()
-            #comprobar comando
+
             if check_type_and_text_start(aText=actText, cText='/addgroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin"]):
                 rtext = actText.replace('/addgroup ','').replace('/addgroup','')
                 send_text = add_permission_group(rtext)
@@ -125,12 +125,13 @@ def main():
                 else:
                     send_text = add_user_permission(db_user[1], rtext[1])
 
-            if check_type_and_text_start(aText=actText, cText='/quitgroup', aType=actType, cType='private', cUId=message.from_user.id):
-                msg = actText.split(" ")
-                if len(msg) != 2:
-                    send_text = "Has introducido el comando de manera incorrecta. El formato debe ser:\n'/quitgroup'"
+            if check_type_and_text_start(aText=actText, cText='/delfromgroup', aType=actType, cType='private', cUId=message.from_user.id):
+                rtext = actText.split(" ")
+                if len(rtext) != 3:
+                    send_text = "Has introducido el comando de manera incorrecta. El formato debe ser:\n'/delfromgroup @usermane groupname'"
                 else:
-                    send_text = remove_from_group(user_id, permission)
+                    user = find_user_by_telegram_user_name(rtext[1])
+                    send_text = remove_from_group(user[1], rtext[2])
 
             if check_type_and_text_start(aText= actText, cText='/groups', aType=actType, cType='private', cUId=message.from_user.id):
                 send_text = show_list(u"Grupos de permisos disponibles:", list_permission_group())
@@ -229,7 +230,7 @@ def help_event():
 def help_group():
     header = "Elige una de las opciones: "
     contain = [['/help', 'Ayuda'], ['/groups', 'Listar grupos'], ['/addgroup', 'Añadir un grupo']]
-    contain += [['/addtogroup', 'Añadir a alguien a un grupo'], ['/quitgroup', 'Sacar a alguien de un grupo']]
+    contain += [['/addtogroup', 'Añadir a alguien a un grupo'], ['/delfromgroup', 'Sacar a alguien de un grupo']]
     return show_list(header, contain)
 
 
