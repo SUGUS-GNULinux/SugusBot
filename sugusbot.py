@@ -125,7 +125,7 @@ def main():
                 else:
                     send_text = add_user_permission(db_user[1], rtext[1])
 
-            if check_type_and_text_start(aText=actText, cText='/delfromgroup', aType=actType, cType='private', cUId=message.from_user.id):
+            if check_type_and_text_start(aText=actText, cText='/delfromgroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin", "sugus"]):
                 rtext = actText.split(" ")
                 if len(rtext) != 3:
                     send_text = "Has introducido el comando de manera incorrecta. El formato debe ser:\n'/delfromgroup @usermane groupname'"
