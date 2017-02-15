@@ -8,17 +8,15 @@ import codecs
 import sys
 import os
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import configparser
 
 from emoji import emojize
 
 from repository import *
-import repository
 from messaging import create_bot, getUpdates, sendMessages
-from auxilliary_methods import get_who, check_type_and_text_start, show_list
-import auxilliary_methods
+from auxilliary_methods import *
 
 config = configparser.ConfigParser()
 config.read('myconfig.ini')
@@ -119,13 +117,13 @@ def main():
 
             if check_type_and_text_start(aText=actText, cText='/addtogroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin", "sugus"]):
                 rtext = actText.replace('/addtogroup ','').replace('/addtogroup','').split(" ")
-                db_user = repository.find_user_by_telegram_user_name(rtext[0])
+                db_user = find_user_by_telegram_user_name(rtext[0])
                 if len(rtext) != 2:
                     send_text = "Formato incorrecto. El formato debe ser: \n '/addtogroup @username group_name'"
                 elif not db_user:
                     send_text = "Nombre de usuario '" + rtext[0] + "' no encontrado en la base de datos"
                 else:
-                    send_text = repository.add_user_permission(db_user[1], rtext[1])
+                    send_text = add_user_permission(db_user[1], rtext[1])
 
             if check_type_and_text_start(aText=actText, cText='/quitgroup', aType=actType, cType='private', cUId=message.from_user.id):
                 msg = actText.split(" ")
@@ -147,11 +145,11 @@ def main():
                 rtext = actText.replace('/addevent ','').replace('/addevent','').split(" ")
                 if len(rtext) < 2:
                     send_text = "Formato incorrecto. EL formato debe ser: \n '/addevent nombre evento dd-mm-aaaa'"
-                elif not auxilliary_methods.check_date(rtext[len(rtext) - 1]):
+                elif not check_date(rtext[len(rtext) - 1]):
                     send_text = "Formato de fecha incorrecto. Esperado 'dd-mm-aaaa'"
                 else:
                     event_name = ' '.join([str(x) for x in rtext[0:len(rtext) - 1]])
-                    send_text = repository.add_event(event_name=event_name, event_date=rtext[len(rtext) - 1])
+                    send_text = add_event(event_name=event_name, event_date=rtext[len(rtext) - 1])
 
             if check_type_and_text_start(aText=actText, cText='/removeevent', aType=actType, cType='private'):
                 send_text = "No disponible"

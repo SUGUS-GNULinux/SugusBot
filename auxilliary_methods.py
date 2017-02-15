@@ -6,7 +6,7 @@ from pyquery import PyQuery
 import telegram
 from repository import find_user_by_telegram_user_id, check_user_permission
 from emoji import emojize
-import datetime
+from datetime import datetime
 
 
 def get_who():
@@ -68,7 +68,7 @@ def show_list(header, contains, positions = None):
 
 def check_date(date):
     try:
-        if datetime.datetime.strptime(date + " 23:59:59", '%d-%m-%Y %H:%M:%S') < datetime.datetime.today():
+        if datetime.strptime(date + " 23:59:59", '%d-%m-%Y %H:%M:%S') < datetime.today():
             return False
     except ValueError:
         return False
