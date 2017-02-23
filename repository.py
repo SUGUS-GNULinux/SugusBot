@@ -16,7 +16,7 @@ def connection(database):
 
 def sec_init(id_admin):
     c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS event_table(id_event INTEGER PRIMARY KEY, date TEXT, name TEXT, UNIQUE(date, name))')
+    c.execute('CREATE TABLE IF NOT EXISTS event_table(id_event INTEGER PRIMARY KEY, date TEXT, name TEXT, creator TEXT, UNIQUE(date, name))')
     c.execute('CREATE TABLE IF NOT EXISTS userTable(id_user INTEGER PRIMARY KEY, id_user_telegram NUMBER UNIQUE, user_name text UNIQUE)')
     c.execute('CREATE TABLE IF NOT EXISTS rel_user_event(user INTEGER, event INTEGER, date TEXT, FOREIGN KEY(user) REFERENCES userTable(id_user), FOREIGN KEY(event) REFERENCES event_table(id_event), UNIQUE(user, event) ON CONFLICT REPLACE)')
     c.execute('CREATE TABLE IF NOT EXISTS permissionTable(id_permission INTEGER PRIMARY KEY, permission TEXT, UNIQUE(permission))')
@@ -36,11 +36,11 @@ def sec_init(id_admin):
     c.close()
 
 
-def add_event(event_name, event_date):
+def add_event(event_name, event_date, creator):
 
     if not find_event_by_name(event_name):
         c = conn.cursor()
-        c.execute('INSERT INTO event_table(date, name) VALUES (?, ?)', (event_date, event_name))
+        c.execute('INSERT INTO event_table(date, name, creator) VALUES (?, ?, ?)', (event_date, event_name, creator))
         conn.commit()
         c.close()
         return "Evento " + event_name + " creado"

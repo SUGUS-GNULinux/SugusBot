@@ -142,15 +142,15 @@ def main():
             if check_type_and_text_start(aText=actText, cText='/events', aType=actType, cType='private'):
                 send_text = show_list(u"Elige una de las listas:", list_events(), [0])
 
-            if check_type_and_text_start(aText=actText, cText='/addevent', aType=actType, cType='private'):
+            if check_type_and_text_start(aText=actText, cText='/addevent', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin", "sugus"]):
                 rtext = actText.replace('/addevent ','').replace('/addevent','').split(" ")
                 if len(rtext) < 2:
-                    send_text = "Formato incorrecto. EL formato debe ser: \n '/addevent nombre evento dd-mm-aaaa'"
+                    send_text = "Formato incorrecto. El formato debe ser: \n '/addevent nombre-evento dd-mm-aaaa'"
                 elif not check_date(rtext[len(rtext) - 1]):
                     send_text = "Formato de fecha incorrecto. Esperado 'dd-mm-aaaa'"
                 else:
                     event_name = ' '.join([str(x) for x in rtext[0:len(rtext) - 1]])
-                    send_text = add_event(event_name=event_name, event_date=rtext[len(rtext) - 1])
+                    send_text = add_event(event_name, rtext[len(rtext) - 1], message.from_user.id)
 
             if check_type_and_text_start(aText=actText, cText='/removeevent', aType=actType, cType='private'):
                 send_text = "No disponible"
