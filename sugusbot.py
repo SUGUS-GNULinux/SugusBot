@@ -147,7 +147,7 @@ def main():
                 if len(rtext) < 2:
                     send_text = "Formato incorrecto. El formato debe ser: \n '/addevent nombre-evento dd-mm-aaaa'"
                 elif not check_date(rtext[len(rtext) - 1]):
-                    send_text = "Formato de fecha incorrecto. Esperado 'dd-mm-aaaa'"
+                    send_text = "Formato de fecha incorrecto ('dd-mm-aaaa') o la fecha ya ha pasado"
                 else:
                     event_name = ' '.join([str(x) for x in rtext[0:len(rtext) - 1]])
                     send_text = add_event(event_name, rtext[len(rtext) - 1], message.from_user.id)
