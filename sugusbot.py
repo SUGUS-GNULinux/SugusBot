@@ -160,7 +160,7 @@ def main():
                     event = find_event_by_name(rtext[1])
                     if not event:
                         send_text = "El evento no existe"
-                    elif int(event[3]) == message.from_user.id and not bool(find_users_by_event(rtext[1])) and datetime.strptime(event[1],"%d-%m-%Y").date() < datetime.today().date() :
+                    elif int(event[3]) == message.from_user.id and not bool(find_users_by_event(rtext[1])) and check_date(event[1],"%d-%m-%Y"):
                         send_text = remove_event(rtext[1])
                     else:
                         send_text = "No tienes permiso para eliminar este evento"
