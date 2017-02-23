@@ -58,7 +58,7 @@ def add_to_event(event_name, user_id):
         c.execute('insert into rel_user_event values(?, ?, ?)', (user[0], event[0], date))
         conn.commit()
         c.close()
-        result = "añadido a " + event_name
+        result = "Añadido a " + event_name
 
     elif not user:
         result = "No estás registrado en el sistema"

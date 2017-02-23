@@ -170,7 +170,7 @@ def main():
                 if not rtext:
                     send_text = u"Elige un evento /events"
                 else:
-                    add_to_event(rtext, act_user_id)
+                    send_text = add_to_event(rtext, act_user_id)
 
             if check_type_and_text_start(aText= actText, cText='/participants', aType=actType, cType='private'):
                 rtext = actText.replace('/participants','').replace(' ','')
