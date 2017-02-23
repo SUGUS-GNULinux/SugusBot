@@ -142,9 +142,10 @@ def list_events():
 
 #el evento solo lo puede borrar un usuario con privilegios
 def remove_event(event_name):
-    event = find_event_by_name(event_name=event_name)
+    event = find_event_by_name(event_name)
 
     if event:
+        empty_event(event[0])
         c = conn.cursor()
         h = c.execute('DELETE FROM event_table WHERE name=?', (event_name,))
         result = "El evento " + event_name + " ha sido eliminado"

@@ -152,8 +152,18 @@ def main():
                     event_name = ' '.join([str(x) for x in rtext[0:len(rtext) - 1]])
                     send_text = add_event(event_name, rtext[len(rtext) - 1], message.from_user.id)
 
-            if check_type_and_text_start(aText=actText, cText='/removeevent', aType=actType, cType='private'):
-                send_text = "No disponible"
+            if check_type_and_text_start(aText=actText, cText='/removeevent', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin"]):
+                rtext = actText.split(' ')
+                if len(rtext) < 2:
+                    send_text = "Formato incorrecto. El formato debe ser:\n/removeevent nombre-evento"
+                else:
+                    event = find_event_by_name(rtext[1])
+                    if not event:
+                        send_text = "El evento no existe"
+                    elif int(event[3]) == message.from_user.id:
+                        send_text = remove_event(rtext[1])
+                    else:
+                        send_text = "No tienes permiso para eliminar este evento"
 
             if check_type_and_text_start(aText=actText, cText='/jointoevent', aType=actType, cType='private'):
                 rtext = actText.replace('/jointoevent','').replace(' ','')
