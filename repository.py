@@ -135,7 +135,7 @@ def empty_event(event_name):
 
 def list_events():
     c = conn.cursor()
-    h = c.execute('select distinct name from event_table').fetchall()
+    h = c.execute('select distinct name, date from event_table').fetchall()
     c.close()
 
     return h

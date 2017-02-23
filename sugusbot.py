@@ -140,7 +140,7 @@ def main():
                 send_text = help_event()
 
             if check_type_and_text_start(aText=actText, cText='/events', aType=actType, cType='private'):
-                send_text = show_list(u"Elige una de las listas:", list_events(), [0])
+                send_text = show_list(u"Elige una de las listas:", list_events(), [0, 1])
 
             if check_type_and_text_start(aText=actText, cText='/addevent', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin", "sugus"]):
                 rtext = actText.replace('/addevent ','').replace('/addevent','').split(" ")
