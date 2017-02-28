@@ -7,6 +7,7 @@ import telegram
 import codecs
 import sys
 import os
+import traceback
 
 from datetime import timedelta
 
@@ -248,11 +249,12 @@ if __name__ == '__main__':
     while True:
         try:
             main()
-        except Exception as e:
+        except Exception:
             if os.path.isfile('log') and os.stat('log').st_size > 1024:
                 permission = 'w'
             else:
                 permission = 'a'
             with open('log', permission) as f:
-                f.write(str(datetime.now().strftime("%d-%m-%y"))+"\n")
-                f.write(str(e)+"\n")
+                info = traceback.format_exc()
+                f.write(str(datetime.now().strftime("%d-%m-%y %H:%M"))+"\n")
+                f.write(info+"\n")
