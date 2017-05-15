@@ -86,12 +86,20 @@ def main():
             periodic_check()
 
             if check_type_and_text_start(aText= actText, cText='/who', aType=actType, cType='private'):
-                who = get_who()
-
-                if not who:
-                    send_text = u"Parece que no hay nadie... {}".format(emojize(":disappointed_face:", use_aliases=True))
-                else:
-                    send_text = show_list(u"Miembros en SUGUS:", who)
+                max_retry = 2
+                for i in range(max_retry):
+                    try:
+                        who = get_who()
+                        if not who:
+                            send_text = u"Parece que no hay nadie... {}".format(
+                                emojize(":disappointed_face:", use_aliases=True))
+                        else:
+                            send_text = show_list(u"Miembros en SUGUS:", who)
+                        break
+                    except Exception as e:
+                        if i is max_retry - 1:
+                            print("Hubo un error repetitivo al intentar conectar al servidor: ", e)
+                            send_text = u"Hubo algún error al realizar la petición a la web de sugus"
 
             if check_type_and_text_start(aText= actText, cText='/como', aType=actType, cType='private'):
                 send_text = add_to_event('comida', act_user_id)
