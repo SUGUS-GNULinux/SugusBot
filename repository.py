@@ -114,7 +114,7 @@ def remove_from_event(event_name, telegram_user_id):
 
 #el evento solo lo puede vaciar un usuario con privilegios
 def empty_event(event_name):
-
+    print("Vamos a proceder a vaciar el evento: " + event_name)
     event = find_event_by_name(event_name=event_name)
 
     if event:
@@ -122,7 +122,7 @@ def empty_event(event_name):
 
         c.execute('DELETE FROM rel_user_event WHERE event=?', (event[0],))
 
-        result = "El evento " + event_name +" ha sido vaciado de usuarios"
+        result = "El evento " + event_name + " ha sido vaciado de usuarios"
 
         conn.commit()
 
@@ -130,6 +130,7 @@ def empty_event(event_name):
     else:
         result = 'El evento ' + event_name + ' no existe'
 
+    print(result)
     return result
 
 
