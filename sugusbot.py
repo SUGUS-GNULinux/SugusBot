@@ -8,6 +8,7 @@ import codecs
 import sys
 import os
 import traceback
+import time
 
 from datetime import timedelta
 
@@ -257,12 +258,17 @@ if __name__ == '__main__':
     while True:
         try:
             main()
-        except Exception:
-            if os.path.isfile('log') and os.stat('log').st_size > 1024:
-                permission = 'w'
-            else:
-                permission = 'a'
-            with open('log', permission) as f:
-                info = traceback.format_exc()
-                f.write(str(datetime.now().strftime("%d-%m-%y %H:%M"))+"\n")
-                f.write(info+"\n")
+        except Exception as e:
+            logging.error("Ocurrió el siguiente error: ", e)
+            try:
+                if os.path.isfile('log') and os.stat('log').st_size > 1024:
+                    permission = 'w'
+                else:
+                    permission = 'a'
+                with open('log', permission) as f:
+                    info = traceback.format_exc()
+                    f.write(str(datetime.now().strftime("%d-%m-%y %H:%M"))+"\n")
+                    f.write(info+"\n")
+            except Exception as e:
+                logging.error("Ocurrió el siguiente error al intentar persistir el error: ", e)
+        time.sleep(20)
