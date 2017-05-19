@@ -26,7 +26,7 @@ database = config['Database']['route']
 token = config['Telegram']['token']
 id_admin = config['Telegram']['id_admin']
 
-last_periodic_check = None
+last_periodic_check = datetime.now().strftime("%d-%m-%y")
 
 # Get last update ID
 LAST_UPDATE_ID = None
