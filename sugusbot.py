@@ -59,10 +59,10 @@ def main():
         else:
             break
 
-    # print("Discarded {} old updates".format(num_discarded))
+    print("Discarded {} old updates".format(num_discarded), file=sys.stdout)
 
     # Main loop
-    print('Working...')
+    print('Working...', file=sys.stdout)
     while True:
         updates = getUpdates(LAST_UPDATE_ID)
 
@@ -100,7 +100,7 @@ def main():
                         break
                     except Exception as e:
                         if i is max_retry - 1:
-                            print("Hubo un error repetitivo al intentar conectar al servidor: ", e)
+                            print("Hubo un error repetitivo al intentar conectar al servidor: ", e, file=sys.stdout)
                             send_text = u"Hubo algún error al realizar la petición a la web de sugus"
 
             if check_type_and_text_start(aText= actText, cText='/como', aType=actType, cType='private'):
@@ -202,7 +202,7 @@ def main():
             elif check_type_and_text_start(aType=actType, cType='private'):
                 sendMessages(help(), chat_id)
             else:
-                print("Mensaje enviado y no publicado por: "+str(actUser))
+                print("Mensaje enviado y no publicado por: "+str(actUser), file=sys.stdout)
 
             update_last_update_id(update_id)
 
