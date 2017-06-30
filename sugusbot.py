@@ -59,7 +59,7 @@ def main():
         else:
             break
 
-    print("Discarded {} old updates".format(num_discarded))
+    # print("Discarded {} old updates".format(num_discarded))
 
     # Main loop
     print('Working...')
