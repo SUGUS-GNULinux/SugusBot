@@ -43,7 +43,7 @@ def main():
 
     # UTF-8 console stuff thingies
     sys.stdout = codecs.getwriter("utf-8")
-    sys.stdout.detach()
+    # sys.stdout.detach()
 
     # Init logging
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
