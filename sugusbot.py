@@ -42,7 +42,7 @@ def main():
     sec_init(id_admin)
 
     # UTF-8 console stuff thingies
-    sys.stdout = codecs.getwriter("utf-8")
+    # sys.stdout = codecs.getwriter("utf-8")
     # sys.stdout.detach()
 
     # Init logging
@@ -59,10 +59,10 @@ def main():
         else:
             break
 
-    print("Discarded {} old updates".format(num_discarded), file=sys.stdout)
+    # print("Discarded {} old updates".format(num_discarded))
 
     # Main loop
-    print('Working...', file=sys.stdout)
+    # print('Working...')
     while True:
         updates = getUpdates(LAST_UPDATE_ID)
 
@@ -100,7 +100,7 @@ def main():
                         break
                     except Exception as e:
                         if i is max_retry - 1:
-                            print("Hubo un error repetitivo al intentar conectar al servidor: ", e, file=sys.stdout)
+                            print("Hubo un error repetitivo al intentar conectar al servidor: ", e)
                             send_text = u"Hubo algún error al realizar la petición a la web de sugus"
 
             if check_type_and_text_start(aText= actText, cText='/como', aType=actType, cType='private'):
@@ -201,8 +201,8 @@ def main():
                 sendMessages(send_text, chat_id)
             elif check_type_and_text_start(aType=actType, cType='private'):
                 sendMessages(help(), chat_id)
-            else:
-                print("Mensaje enviado y no publicado por: "+str(actUser), file=sys.stdout)
+            # else:
+                # print("Mensaje enviado y no publicado por: "+str(actUser))
 
             update_last_update_id(update_id)
 
@@ -272,4 +272,3 @@ if __name__ == '__main__':
                     f.write(info+"\n")
             except Exception as e:
                 logging.error("Ocurrió el siguiente error al intentar persistir el error: ", e)
-        time.sleep(20)
