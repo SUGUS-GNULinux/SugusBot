@@ -2,3 +2,5 @@ myconfig.ini
 log
 *.pyc
 *.db
+.idea
+.vscode
