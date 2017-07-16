@@ -9,6 +9,7 @@ from auxilliary_methods import *
 This module contains the functions that handlers execute.
 """
 
+
 # Help functions
 def help_eat():
     header = "Elige una de las opciones: "
@@ -91,7 +92,7 @@ def como(bot, update):
 
     if check_type_and_text_start(aText=actText, cText='/como', aType=actType,
                                  cType='private'):
-        send_text = add_to_event('comida', act_user_id)
+        send_text = repository.add_to_event('comida', act_user_id)
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -106,7 +107,7 @@ def no_como(bot, update):
 
     if check_type_and_text_start(aText=actText, cText='/nocomo', aType=actType,
                                  cType='private'):
-        send_text = remove_from_event('comida', act_user_id)
+        send_text = repository.remove_from_event('comida', act_user_id)
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -220,7 +221,7 @@ def del_from_group(bot, update):
                         "El formato debe ser:\n'/delfromgroup @usermane " + \
                         "groupname'"
         else:
-            user = find_user_by_telegram_user_name(rtext[1])
+            user = repository.find_user_by_telegram_user_name(rtext[1])
             send_text = repository.remove_from_group(user[1], rtext[2])
 
     if send_text is not None:

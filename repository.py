@@ -7,14 +7,23 @@ from datetime import datetime
 conn = None
 user_cache = list()
 user_cache_last_update = None
+db = None
 
 
 def connection(database):
-    global conn
+    global conn, db
     conn = sqlite3.connect(database)
+    db = database
+
+
+def check_connection():
+    global conn
+    if conn is None:
+        connection(db)
 
 
 def sec_init(id_admin):
+    global conn
     c = conn.cursor()
     c.execute('CREATE TABLE IF NOT EXISTS event_table(id_event INTEGER PRIMARY KEY, date TEXT, name TEXT, creator TEXT, UNIQUE(date, name))')
     c.execute('CREATE TABLE IF NOT EXISTS userTable(id_user INTEGER PRIMARY KEY, id_user_telegram NUMBER UNIQUE, user_name text UNIQUE)')
@@ -34,9 +43,11 @@ def sec_init(id_admin):
 
     conn.commit()
     c.close()
+    conn = None
 
 
 def add_event(event_name, event_date, creator):
+    check_connection()
 
     if not find_event_by_name(event_name):
         c = conn.cursor()
@@ -47,7 +58,9 @@ def add_event(event_name, event_date, creator):
     else:
         return "El evento " + event_name + " ya existe"
 
+
 def add_to_event(event_name, user_id):
+    check_connection()
     user = find_user_by_telegram_user_id(telegram_user_id=user_id)
     event = find_event_by_name(event_name=event_name)
 
@@ -69,6 +82,7 @@ def add_to_event(event_name, user_id):
 
 
 def find_event_by_name(event_name):
+    check_connection()
     c = conn.cursor()
     h = c.execute('select * from event_table where name=?', (event_name,)).fetchone()
 
@@ -78,6 +92,7 @@ def find_event_by_name(event_name):
 
 
 def find_users_by_event(event_name):
+    check_connection()
     event = find_event_by_name(event_name=event_name)
 
     if event:
@@ -93,7 +108,7 @@ def find_users_by_event(event_name):
 
 
 def remove_from_event(event_name, telegram_user_id):
-
+    check_connection()
     event = find_event_by_name(event_name=event_name)
     user = find_user_by_telegram_user_id(telegram_user_id=telegram_user_id)
 
@@ -112,8 +127,9 @@ def remove_from_event(event_name, telegram_user_id):
     return result
 
 
-#el evento solo lo puede vaciar un usuario con privilegios
+# el evento solo lo puede vaciar un usuario con privilegios
 def empty_event(event_name):
+    check_connection()
     print("Vamos a proceder a vaciar el evento: " + event_name)
     event = find_event_by_name(event_name=event_name)
 
@@ -135,14 +151,17 @@ def empty_event(event_name):
 
 
 def list_events():
+    check_connection()
     c = conn.cursor()
     h = c.execute('select distinct name, date from event_table').fetchall()
     c.close()
 
     return h
 
+
 #el evento solo lo puede borrar un usuario con privilegios
 def remove_event(event_name):
+    check_connection()
     event = find_event_by_name(event_name)
 
     if event:
@@ -157,6 +176,7 @@ def remove_event(event_name):
 
 
 def find_user_by_telegram_user_id(telegram_user_id):
+    check_connection()
     c = conn.cursor()
     h = c.execute('select * from userTable where id_user_telegram=?', (telegram_user_id,)).fetchone()
 
@@ -166,6 +186,7 @@ def find_user_by_telegram_user_id(telegram_user_id):
 
 
 def find_user_by_telegram_user_name(telegram_user_name):
+    check_connection()
 
     if not telegram_user_name.startswith("@"):
         telegram_user_name = "@" + telegram_user_name
@@ -177,14 +198,18 @@ def find_user_by_telegram_user_name(telegram_user_name):
 
     return h
 
+
 def check_user_permission(user_id, permission):
+    check_connection()
     c = conn.cursor()
     h = c.execute('select * from userTable INNER JOIN rel_user_permission ON userTable.id_user = rel_user_permission.user INNER JOIN permissionTable ON permissionTable.id_permission = rel_user_permission.permission where userTable.id_user_telegram = ? and permissionTable.permission = ?', (user_id, permission)).fetchone()
     c.close()
 
     return bool(h)
 
+
 def remove_from_group(user_id, permission):
+    check_connection()
     if check_user_permission(user_id, permission):
         c = conn.cursor()
         h = c.execute('DELETE from rel_user_permission where user='
@@ -198,7 +223,9 @@ def remove_from_group(user_id, permission):
         result = "El usuario no se encuentra en el grupo " + permission
     return result
 
+
 def add_permission_group(permission_name):
+    check_connection()
     if permission_name and permission_name is not " ":
         permission_name = permission_name.replace(" ", "_")
         c = conn.cursor()
@@ -212,6 +239,7 @@ def add_permission_group(permission_name):
 
 
 def list_permission_group():
+    check_connection()
     c = conn.cursor()
 
     h = c.execute('SELECT permission FROM permissionTable').fetchall()
@@ -223,6 +251,7 @@ def list_permission_group():
 
 
 def add_user_permission(id_user_telegram, permission):
+    check_connection()
     c = conn.cursor()
     permission = c.execute('SELECT id_permission FROM permissionTable WHERE permission = ?', (permission,)).fetchone()
     ret = "El rol indicado no existe"
@@ -238,6 +267,7 @@ def add_user_permission(id_user_telegram, permission):
 
 
 def update_user(id_user_telegram, user_name, force_update=False):
+    check_connection()
     global user_cache, user_cache_last_update
     result = None
     stop = False
