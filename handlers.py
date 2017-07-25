@@ -1,7 +1,7 @@
 #!/usr/bin/python3.5
 # -*- coding: utf-8 -*-
 
-import repository
+from repository import *
 from emoji import emojize
 from auxilliary_methods import *
 
@@ -92,7 +92,7 @@ def como(bot, update):
 
     if check_type_and_text_start(aText=actText, cText='/como', aType=actType,
                                  cType='private'):
-        send_text = repository.add_to_event('comida', act_user_id)
+        send_text = add_to_event('comida', act_user_id)
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -107,7 +107,7 @@ def no_como(bot, update):
 
     if check_type_and_text_start(aText=actText, cText='/nocomo', aType=actType,
                                  cType='private'):
-        send_text = repository.remove_from_event('comida', act_user_id)
+        send_text = remove_from_event('comida', act_user_id)
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -122,7 +122,7 @@ def quien_come(bot, update):
 
     if check_type_and_text_start(aText=actText, cText='/quiencome',
                                  aType=actType, cType='private'):
-        quiencome = repository.find_users_by_event('comida')
+        quiencome = find_users_by_event('comida')
         if quiencome:
             send_text = show_list(u"Hoy come en Sugus:", quiencome, [2])
         else:
@@ -171,7 +171,7 @@ def add_group(bot, update):
                                  cUId=update.message.from_user.id,
                                  perm_required=["admin"]):
         rtext = actText.replace('/addgroup ', '').replace('/addgroup', '')
-        send_text = repository.add_permission_group(rtext)
+        send_text = add_permission_group(rtext)
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -189,7 +189,7 @@ def add_to_group(bot, update):
                                  perm_required=["admin", "sugus"]):
         rtext = actText.replace('/addtogroup ', '').replace('/addtogroup', '')\
                 .split(" ")
-        db_user = repository.find_user_by_telegram_user_name(rtext[0])
+        db_user = find_user_by_telegram_user_name(rtext[0])
 
         if len(rtext) != 2:
             send_text = "Formato incorrecto. El formato debe ser: \n" + \
@@ -198,7 +198,7 @@ def add_to_group(bot, update):
             send_text = "Nombre de usuario '" + rtext[0] + \
                         "' no encontrado en la base de datos"
         else:
-            send_text = repository.add_user_permission(db_user[1], rtext[1])
+            send_text = add_user_permission(db_user[1], rtext[1])
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -221,8 +221,8 @@ def del_from_group(bot, update):
                         "El formato debe ser:\n'/delfromgroup @usermane " + \
                         "groupname'"
         else:
-            user = repository.find_user_by_telegram_user_name(rtext[1])
-            send_text = repository.remove_from_group(user[1], rtext[2])
+            user = find_user_by_telegram_user_name(rtext[1])
+            send_text = remove_from_group(user[1], rtext[2])
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -238,7 +238,7 @@ def groups(bot, update):
                                  aType=actType, cType='private',
                                  cUId=update.message.from_user.id):
         send_text = show_list(u"Grupos de permisos disponibles:",
-                              repository.list_permission_group())
+                              list_permission_group())
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -267,7 +267,7 @@ def events(bot, update):
     if check_type_and_text_start(aText=actText, cText='/events',
                                  aType=actType, cType='private'):
         send_text = show_list(u"Elige una de las listas:",
-                              repository.list_events(), [0, 1])
+                              list_events(), [0, 1])
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -293,8 +293,8 @@ def add_event(bot, update):
                         "o la fecha ya ha pasado"
         else:
             event_name = ' '.join([str(x) for x in rtext[0:len(rtext) - 1]])
-            send_text = repository.add_event(event_name, rtext[len(rtext) - 1],
-                                             update.message.from_user.id)
+            send_text = add_event(event_name, rtext[len(rtext) - 1],
+                                  update.message.from_user.id)
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -316,12 +316,12 @@ def remove_event(bot, update):
             send_text = "Formato incorrecto. El formato debe ser:\n" + \
                         "'/removeevent nombre-evento'"
         else:
-            event = repository.find_event_by_name(rtext[1])
+            event = find_event_by_name(rtext[1])
 
             if not event:
                 send_text = "El evento no existe"
             elif (int(event[3]) == update.message.from_user.id and
-                  not bool(repository.find_users_by_event(rtext[1])) and
+                  not bool(find_users_by_event(rtext[1])) and
                   check_date(event[1], "%d-%m-%Y")):
                 send_text = remove_event(rtext[1])
             else:
@@ -343,7 +343,7 @@ def join_to_event(bot, update):
         if not rtext:
             send_text = u"Elige un evento /events"
         else:
-            send_text = repository.add_to_event(rtext, act_user_id)
+            send_text = add_to_event(rtext, act_user_id)
 
     if send_text is not None:
         update.message.reply_text(send_text)
@@ -360,7 +360,8 @@ def participants(bot, update):
         rtext = actText.replace('/participants', '').replace(' ', '')
 
         if not rtext:
-            send_text = show_list(u"Elige una de las listas:", list_events())
+            send_text = show_list(u"Elige una de las listas:",
+                                  list_events())
         else:
             if len(find_users_by_event(rtext)) == 0:
                 send_text = u"No hay nadie en {}".format(rtext)
@@ -381,7 +382,7 @@ def leave_event(bot, update):
     if check_type_and_text_start(aText=actText, cText='/leaveevent',
                                  aType=actType, cType='private'):
         rtext = actText.replace('/leaveevent', '').replace(' ', '')
-        send_text = repository.remove_from_event(rtext, act_user_id)
+        send_text = remove_from_event(rtext, act_user_id)
 
     if send_text is not None:
         update.message.reply_text(send_text)
