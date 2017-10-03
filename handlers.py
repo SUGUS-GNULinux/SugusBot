@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import repository
+import telegram
 from emoji import emojize
 import auxilliary_methods
 
@@ -148,16 +149,17 @@ def comida(bot, update):
     actText = update.message.text
     actType = update.message.chat.type
 
+    comida_keyboard = [[telegram.InlineKeyboardButton('Help', url='www.google.com')],
+                       [telegram.InlineKeyboardButton('Como', url='www.google.com')],
+                       [telegram.InlineKeyboardButton('No Como', url='www.google.com')],
+                       [telegram.InlineKeyboardButton('Quién come?', url='www.google.com')]]
+
     if auxilliary_methods.check_type_and_text_start(aText=actText,
                                                     cText='/comida',
                                                     aType=actType,
                                                     cType='private'):
-        send_text = help_eat()
-
-    if send_text is not None:
-        update.message.reply_text(send_text)
-    else:
-        update.message.reply_text(help())
+        reply_markup = telegram.InlineKeyboardMarkup(comida_keyboard)
+        update.message.reply_text('Elige una de las opciones:', reply_markup=reply_markup)
 
 
 def group(bot, update):
