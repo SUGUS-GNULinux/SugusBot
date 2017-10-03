@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Retrieve configuration from config file
 config = ConfigParser()
-config.read('myconfig.ini')
+config.read('config.ini')
 database = config['Database']['route']
 token = config['Telegram']['token']
 id_admin = config['Telegram']['id_admin']
