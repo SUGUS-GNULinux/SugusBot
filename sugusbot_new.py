@@ -6,7 +6,8 @@ import repository
 import handlers
 
 from configparser import ConfigParser
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters,\
+    CallbackQueryHandler
 
 # Init logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s '
@@ -23,7 +24,6 @@ id_admin = config['Telegram']['id_admin']
 
 # Start database connection
 repository.connection(database)
-
 
 def main():
     # Database initialization
@@ -43,6 +43,8 @@ def main():
                                           handlers.who))
     dispatcher.add_handler(CommandHandler('como',
                                           handlers.como))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.quien_come,
+                                                pattern = 'quien_come'))
     dispatcher.add_handler(CommandHandler('quiencome',
                                           handlers.quien_come))
     dispatcher.add_handler(CommandHandler('comida',

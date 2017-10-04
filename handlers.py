@@ -124,41 +124,31 @@ def no_como(bot, update):
 
 
 def quien_come(bot, update):
-    actText = update.message.text
-    actType = update.message.chat.type
-    act_user_id = update.message.from_user.id
-
-    if auxilliary_methods.check_type_and_text_start(aText=actText,
-                                                    cText='/quiencome',
-                                                    aType=actType,
-                                                    cType='private'):
-        quiencome = repository.find_users_by_event('comida')
-        if quiencome:
-            send_text = auxilliary_methods.show_list(u"Hoy come en Sugus:",
-                                                     quiencome, [2])
-        else:
-            send_text = 'De momento nadie come en Sugus'
-
-    if send_text is not None:
-        update.message.reply_text(send_text)
+    quiencome = repository.find_users_by_event('comida')
+    if quiencome:
+        send_text = auxilliary_methods.show_list(u"Hoy come en Sugus:",
+                                                 quiencome, [2])
     else:
-        update.message.reply_text(help())
+        send_text = 'De momento nadie come en Sugus'
+    update.callback_query.message.reply_text(send_text)
+    id = update.callback_query.id
+    bot.answerCallbackQuery(id)
 
 
 def comida(bot, update):
     actText = update.message.text
     actType = update.message.chat.type
 
-    comida_keyboard = [[telegram.InlineKeyboardButton('Help', url='www.google.com')],
-                       [telegram.InlineKeyboardButton('Como', url='www.google.com')],
-                       [telegram.InlineKeyboardButton('No Como', url='www.google.com')],
-                       [telegram.InlineKeyboardButton('Quién come?', url='www.google.com')]]
+    comida_btns = [[telegram.InlineKeyboardButton('Help', url='www.google.com')],
+                   [telegram.InlineKeyboardButton('Como', url='www.google.com')],
+                   [telegram.InlineKeyboardButton('No Como', url='www.google.com')],
+                   [telegram.InlineKeyboardButton('Quién come?', callback_data = 'quien_come')]]
 
     if auxilliary_methods.check_type_and_text_start(aText=actText,
                                                     cText='/comida',
                                                     aType=actType,
                                                     cType='private'):
-        reply_markup = telegram.InlineKeyboardMarkup(comida_keyboard)
+        reply_markup = telegram.InlineKeyboardMarkup(comida_btns)
         update.message.reply_text('Elige una de las opciones:', reply_markup=reply_markup)
 
 

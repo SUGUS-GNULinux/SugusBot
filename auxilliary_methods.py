@@ -27,7 +27,13 @@ def get_who():
     return who
 
 
-def check_type_and_text_start(aText = None, aUName = None, cText = None, aType = None, cType = None, cUId = None, perm_required=None):
+def check_type_and_text_start(aText = None,
+                              aUName = None,
+                              cText = None,
+                              aType = None,
+                              cType = None,
+                              cUId = None,
+                              perm_required=None):
     # Si perm_required es None y cUId no es None entonces se busca que el usuario esté en cualquier grupo
 
     result = True
