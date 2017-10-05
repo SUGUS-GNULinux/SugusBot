@@ -43,6 +43,8 @@ def main():
                                           handlers.who))
     dispatcher.add_handler(CommandHandler('como',
                                           handlers.como))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.no_como,
+                                                pattern = 'no_como'))
     dispatcher.add_handler(CallbackQueryHandler(handlers.quien_come,
                                                 pattern = 'quien_come'))
     dispatcher.add_handler(CommandHandler('quiencome',
