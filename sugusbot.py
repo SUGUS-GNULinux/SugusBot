@@ -37,10 +37,14 @@ def main():
     # Assign functions to handlers
     dispatcher.add_handler(CommandHandler('start',
                                           handlers.start))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.help,
+                                                pattern = 'help'))
     dispatcher.add_handler(CommandHandler('help',
                                           handlers.help))
     dispatcher.add_handler(CommandHandler('who',
                                           handlers.who))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.como,
+                                                pattern = 'como'))
     dispatcher.add_handler(CommandHandler('como',
                                           handlers.como))
     dispatcher.add_handler(CallbackQueryHandler(handlers.no_como,

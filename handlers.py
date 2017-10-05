@@ -54,7 +54,13 @@ def help(bot, update):
                ['/comida', 'Opciones de comida']]
     contain = contain + [['/group', 'Opciones de permisos']]
     contain = contain + [['/event', 'Opciones de eventos']]
-    update.message.reply_text(auxilliary_methods.show_list(header, contain))
+    send_text = auxilliary_methods.show_list(header, contain)
+    if update.message:
+        update.message.reply_text(send_text)
+    elif update.callback_query:
+        update.callback_query.message.reply_text(send_text)
+        id = update.callback_query.id
+        bot.answerCallbackQuery(id)
 
 
 def who(bot, update):
@@ -90,20 +96,11 @@ def who(bot, update):
 
 
 def como(bot, update):
-    actText = update.message.text
-    actType = update.message.chat.type
-    act_user_id = update.message.from_user.id
-
-    if auxilliary_methods.check_type_and_text_start(aText=actText,
-                                                    cText='/como',
-                                                    aType=actType,
-                                                    cType='private'):
-        send_text = repository.add_to_event('comida', act_user_id)
-
-    if send_text is not None:
-        update.message.reply_text(send_text)
-    else:
-        update.message.reply_text(help())
+    user_id = update.callback_query.from_user.id
+    send_text = repository.add_to_event('comida', user_id)
+    update.callback_query.message.reply_text(send_text)
+    id = update.callback_query.id
+    bot.answerCallbackQuery(id)
 
 
 def no_como(bot, update):
@@ -129,8 +126,8 @@ def comida(bot, update):
     actText = update.message.text
     actType = update.message.chat.type
 
-    comida_btns = [[telegram.InlineKeyboardButton('Help', url='www.google.com')],
-                   [telegram.InlineKeyboardButton('Como', url='www.google.com')],
+    comida_btns = [[telegram.InlineKeyboardButton('Help', callback_data='help')],
+                   [telegram.InlineKeyboardButton('Como', callback_data='como')],
                    [telegram.InlineKeyboardButton('No Como', callback_data='no_como')],
                    [telegram.InlineKeyboardButton('Quién come?', callback_data='quien_come')]]
 
