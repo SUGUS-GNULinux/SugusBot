@@ -1,274 +1,89 @@
-#!/usr/bin/python3.5
+#!/usr/bin/python3.6
 # -*- coding: utf-8 -*-
 
 import logging
-import telegram
+import repository
+import handlers
 
-import codecs
-import sys
-import os
-import traceback
-import time
+from configparser import ConfigParser
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters,\
+    CallbackQueryHandler
 
-from datetime import timedelta
+# Init logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s '
+                    '- %(message)s', level=logging.INFO)
 
-import configparser
+logger = logging.getLogger(__name__)
 
-from emoji import emojize
-
-from repository import *
-from messaging import create_bot, getUpdates, sendMessages
-from auxilliary_methods import *
-
-config = configparser.ConfigParser()
-config.read('myconfig.ini')
+# Retrieve configuration from config file
+config = ConfigParser()
+config.read('config.ini')
 database = config['Database']['route']
 token = config['Telegram']['token']
 id_admin = config['Telegram']['id_admin']
 
-last_periodic_check = datetime.now().strftime("%d-%m-%y")
-
-# Get last update ID
-LAST_UPDATE_ID = None
-
-# Create bot object
-create_bot(token)
-
-connection(database)
-
+# Start database connection
+repository.connection(database)
 
 def main():
+    # Database initialization
+    repository.sec_init(id_admin)
 
-    sec_init(id_admin)
+    # EventHandler creation
+    updater = Updater(token)
 
-    # UTF-8 console stuff thingies
-    # sys.stdout = codecs.getwriter("utf-8")
-    # sys.stdout.detach()
+    dispatcher = updater.dispatcher
 
-    # Init logging
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Assign functions to handlers
+    dispatcher.add_handler(CommandHandler('start',
+                                          handlers.start))
+    dispatcher.add_handler(CommandHandler('help',
+                                          handlers.help))
+    dispatcher.add_handler(CommandHandler('who',
+                                          handlers.who))
+    dispatcher.add_handler(CommandHandler('como',
+                                          handlers.como))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.quien_come,
+                                                pattern = 'quien_come'))
+    dispatcher.add_handler(CommandHandler('quiencome',
+                                          handlers.quien_come))
+    dispatcher.add_handler(CommandHandler('comida',
+                                          handlers.comida))
+    dispatcher.add_handler(CommandHandler('group',
+                                          handlers.group))
+    dispatcher.add_handler(CommandHandler('addgroup',
+                                          handlers.add_group))
+    dispatcher.add_handler(CommandHandler('addtogroup',
+                                          handlers.add_to_group))
+    dispatcher.add_handler(CommandHandler('delfromgroup',
+                                          handlers.del_from_group))
+    dispatcher.add_handler(CommandHandler('groups',
+                                          handlers.groups))
+    dispatcher.add_handler(CommandHandler('event',
+                                          handlers.event))
+    dispatcher.add_handler(CommandHandler('events',
+                                          handlers.events))
+    dispatcher.add_handler(CommandHandler('addevent',
+                                          handlers.add_event))
+    dispatcher.add_handler(CommandHandler('removeevent',
+                                          handlers.remove_event))
+    dispatcher.add_handler(CommandHandler('jointoevent',
+                                          handlers.join_to_event))
+    dispatcher.add_handler(CommandHandler('participants',
+                                          handlers.participants))
+    dispatcher.add_handler(CommandHandler('leaveevent',
+                                          handlers.leave_event))
 
-    # Discard old updates, sent before the bot was started
-    num_discarded = 0
+    # Error handler, for logging purposes
+    dispatcher.add_error_handler(handlers.error)
 
-    while True:
-        updates = getUpdates(LAST_UPDATE_ID, timeout=1)
-        if updates is not None and updates:
-            num_discarded += len(updates)
-            update_last_update_id(updates[-1].update_id)
-        else:
-            break
+    # Start the bot
+    updater.start_polling()
 
-    # print("Discarded {} old updates".format(num_discarded))
-
-    # Main loop
-    # print('Working...')
-    while True:
-        updates = getUpdates(LAST_UPDATE_ID)
-
-        for update in updates:
-            message = update.message
-            actText = message.text
-            actType = message.chat.type
-            chat_id = message.chat.id
-            update_id = update.update_id
-            actUser = message.from_user.username
-            act_user_id = message.from_user.id
-
-            stop, send_text = update_user(id_user_telegram=act_user_id, user_name=actUser)
-
-            if send_text:
-                sendMessages(send_text, chat_id)
-                update_last_update_id(update_id)
-                send_text = None
-
-            if stop:
-                break
-
-            periodic_check()
-
-            if check_type_and_text_start(aText= actText, cText='/who', aType=actType, cType='private'):
-                max_retry = 2
-                for i in range(max_retry):
-                    try:
-                        who = get_who()
-                        if not who:
-                            send_text = u"Parece que no hay nadie... {}".format(
-                                emojize(":disappointed_face:", use_aliases=True))
-                        else:
-                            send_text = show_list(u"Miembros en SUGUS:", who)
-                        break
-                    except Exception as e:
-                        if i is max_retry - 1:
-                            print("Hubo un error repetitivo al intentar conectar al servidor: ", e)
-                            send_text = u"Hubo algún error al realizar la petición a la web de sugus"
-
-            if check_type_and_text_start(aText= actText, cText='/como', aType=actType, cType='private'):
-                send_text = add_to_event('comida', act_user_id)
-
-            if check_type_and_text_start(aText= actText, cText='/nocomo', aType=actType, cType='private'):
-                send_text = remove_from_event('comida', act_user_id)
-
-            if check_type_and_text_start(aText= actText, cText='/quiencome', aType=actType, cType='private'):
-                quiencome = find_users_by_event('comida')
-                if quiencome:
-                    send_text = show_list(u"Hoy come en Sugus:", quiencome, [2])
-                else:
-                    send_text = 'De momento nadie come en Sugus'
-
-            if check_type_and_text_start(aText=actText, cText='/comida', aType=actType, cType='private'):
-                send_text = help_eat()
-
-            if check_type_and_text_start(aText=actText, cText='/group', aType=actType, cType='private'):
-                send_text = help_group()
-
-            if check_type_and_text_start(aText=actText, cText='/addgroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin"]):
-                rtext = actText.replace('/addgroup ','').replace('/addgroup','')
-                send_text = add_permission_group(rtext)
-
-            if check_type_and_text_start(aText=actText, cText='/addtogroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin", "sugus"]):
-                rtext = actText.replace('/addtogroup ','').replace('/addtogroup','').split(" ")
-                db_user = find_user_by_telegram_user_name(rtext[0])
-                if len(rtext) != 2:
-                    send_text = "Formato incorrecto. El formato debe ser: \n '/addtogroup @username group_name'"
-                elif not db_user:
-                    send_text = "Nombre de usuario '" + rtext[0] + "' no encontrado en la base de datos"
-                else:
-                    send_text = add_user_permission(db_user[1], rtext[1])
-
-            if check_type_and_text_start(aText=actText, cText='/delfromgroup', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin", "sugus"]):
-                rtext = actText.split(" ")
-                if len(rtext) != 3:
-                    send_text = "Has introducido el comando de manera incorrecta. El formato debe ser:\n'/delfromgroup @usermane groupname'"
-                else:
-                    user = find_user_by_telegram_user_name(rtext[1])
-                    send_text = remove_from_group(user[1], rtext[2])
-
-            if check_type_and_text_start(aText= actText, cText='/groups', aType=actType, cType='private', cUId=message.from_user.id):
-                send_text = show_list(u"Grupos de permisos disponibles:", list_permission_group())
-
-            if check_type_and_text_start(aText=actText, cText='/event', aType=actType, cType='private'):
-                send_text = help_event()
-
-            if check_type_and_text_start(aText=actText, cText='/events', aType=actType, cType='private'):
-                send_text = show_list(u"Elige una de las listas:", list_events(), [0, 1])
-
-            if check_type_and_text_start(aText=actText, cText='/addevent', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin", "sugus"]):
-                rtext = actText.replace('/addevent ','').replace('/addevent','').split(" ")
-                if len(rtext) < 2:
-                    send_text = "Formato incorrecto. El formato debe ser: \n '/addevent nombre-evento dd-mm-aaaa'"
-                elif not check_date(rtext[len(rtext) - 1]):
-                    send_text = "Formato de fecha incorrecto ('dd-mm-aaaa') o la fecha ya ha pasado"
-                else:
-                    event_name = ' '.join([str(x) for x in rtext[0:len(rtext) - 1]])
-                    send_text = add_event(event_name, rtext[len(rtext) - 1], message.from_user.id)
-
-            if check_type_and_text_start(aText=actText, cText='/removeevent', aType=actType, cType='private', cUId=message.from_user.id, perm_required=["admin"]):
-                rtext = actText.split(' ')
-                if len(rtext) < 2:
-                    send_text = "Formato incorrecto. El formato debe ser:\n/removeevent nombre-evento"
-                else:
-                    event = find_event_by_name(rtext[1])
-                    if not event:
-                        send_text = "El evento no existe"
-                    elif int(event[3]) == message.from_user.id and not bool(find_users_by_event(rtext[1])) and check_date(event[1],"%d-%m-%Y"):
-                        send_text = remove_event(rtext[1])
-                    else:
-                        send_text = "No tienes permiso para eliminar este evento"
-
-            if check_type_and_text_start(aText=actText, cText='/jointoevent', aType=actType, cType='private'):
-                rtext = actText.replace('/jointoevent','').replace(' ','')
-                if not rtext:
-                    send_text = u"Elige un evento /events"
-                else:
-                    send_text = add_to_event(rtext, act_user_id)
-
-            if check_type_and_text_start(aText= actText, cText='/participants', aType=actType, cType='private'):
-                rtext = actText.replace('/participants','').replace(' ','')
-                if not rtext:
-                    send_text = show_list(u"Elige una de las listas:", list_events())
-                else:
-                    if len(find_users_by_event(rtext)) == 0:
-                        send_text = u"No hay nadie en {}".format(rtext)
-                    else:
-                        send_text = show_list(u"Participantes en {}:".format(rtext), find_users_by_event(rtext), [2])
-
-            if check_type_and_text_start(aText= actText, cText='/leaveevent', aType=actType, cType='private'):
-                rtext = actText.replace('/leaveevent','').replace(' ','')
-                send_text = remove_from_event(rtext, act_user_id)
-
-            if send_text != None:
-                sendMessages(send_text, chat_id)
-            elif check_type_and_text_start(aType=actType, cType='private'):
-                sendMessages(help(), chat_id)
-            # else:
-                # print("Mensaje enviado y no publicado por: "+str(actUser))
-
-            update_last_update_id(update_id)
-
-
-def update_last_update_id(update_id):
-    global LAST_UPDATE_ID
-
-    LAST_UPDATE_ID = update_id + 1
-
-
-def periodic_check():
-
-    global last_periodic_check
-
-    yesterday_date = datetime.now() - timedelta(days=1)
-    yesterday_date = yesterday_date.strftime("%d-%m-%y")
-
-    if last_periodic_check is yesterday_date:
-        empty_event('comida')
-
-        last_periodic_check = datetime.now().strftime("%d-%m-%y")
-
-def help():
-    header = "Elige una de las opciones: "
-    contain = [['/help', 'Ayuda'], ['/who','¿Quien hay en Sugus?'], ['/comida','Opciones de comida']]
-    contain = contain + [['/group', 'Opciones de permisos']]
-    contain = contain + [['/event', 'Opciones de eventos']]
-    return show_list(header, contain)
-
-
-def help_eat():
-    header = "Elige una de las opciones: "
-    contain = [['/help', 'Ayuda']]
-    contain = contain + [['/como','Yo como aquí'], ['/nocomo', 'Yo no como aquí'], ['/quiencome', '¿Quien come aquí?']]
-    return show_list(header, contain)
-
-
-def help_event():
-    header = "Elige una de las opciones: "
-    contain = [['/help', 'Ayuda']]
-    contain += [['/events', 'Listar eventos'], ['/addevent', 'Añadir un evento'], ['/removeevent', 'Eliminar un evento']]
-    contain += [['/leaveevent', 'Abandonar un evento'], ['/jointoevent', 'Unirte a un evento'], ['/participants', 'Listar participantes']]
-    return show_list(header, contain)
-
-
-def help_group():
-    header = "Elige una de las opciones: "
-    contain = [['/help', 'Ayuda'], ['/groups', 'Listar grupos'], ['/addgroup', 'Añadir un grupo']]
-    contain += [['/addtogroup', 'Añadir a alguien a un grupo'], ['/delfromgroup', 'Sacar a alguien de un grupo']]
-    return show_list(header, contain)
-
+    # Run the bot until you press Ctrl-C or the process receives SIGINT,
+    # SIGTERM or SIGABRT. This should be used most of the time, since
+    # start_polling() is non-blocking and will stop the bot gracefully.
+    updater.idle()
 
 if __name__ == '__main__':
-    while True:
-        try:
-            main()
-        except Exception as e:
-            logging.error("Ocurrió el siguiente error: ", e)
-            try:
-                if os.path.isfile('log') and os.stat('log').st_size > 1024:
-                    permission = 'w'
-                else:
-                    permission = 'a'
-                with open('log', permission) as f:
-                    info = traceback.format_exc()
-                    f.write(str(datetime.now().strftime("%d-%m-%y %H:%M"))+"\n")
-                    f.write(info+"\n")
-            except Exception as e:
-                logging.error("Ocurrió el siguiente error al intentar persistir el error: ", e)
+    main()
