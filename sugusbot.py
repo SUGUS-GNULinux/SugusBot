@@ -79,6 +79,8 @@ def main():
                                           handlers.join_to_event))
     dispatcher.add_handler(CommandHandler('participants',
                                           handlers.participants))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.leave_event,
+                                                pattern = '^leave_event.'))
     dispatcher.add_handler(CommandHandler('leaveevent',
                                           handlers.leave_event))
 
