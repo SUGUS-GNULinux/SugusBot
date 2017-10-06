@@ -113,7 +113,7 @@ def no_como(bot, update):
 def quien_come(bot, update):
     quiencome = repository.find_users_by_event('comida')
     if quiencome:
-        send_text = auxilliary_methods.show_list(u"Hoy come en Sugus:",
+        send_text = auxilliary_methods.show_list("Hoy come en Sugus:",
                                                  quiencome, [2])
     else:
         send_text = 'De momento nadie come en Sugus'
@@ -354,24 +354,23 @@ def remove_event(bot, update):
 
 
 def join_to_event(bot, update):
-    actText = update.message.text
-    actType = update.message.chat.type
-
-    if auxilliary_methods.check_type_and_text_start(aText=actText,
-                                                    cText='/jointoevent',
-                                                    aType=actType,
-                                                    cType='private'):
-        rtext = actText.replace('/jointoevent', '').replace(' ', '')
-        if not rtext:
-            send_text = u"Elige un evento /events"
-        else:
-            send_text = repository.add_to_event(rtext, act_user_id)
-
-    if send_text is not None:
-        update.message.reply_text(send_text)
-    else:
-        update.message.reply_text(help())
-
+    if update.message:
+        event_btns = []
+        for name in repository.list_events():
+            btn = telegram.InlineKeyboardButton(str(name[0]),
+                                                callback_data = 'join_event.'+str(name[0]))
+            event_btns.append([btn])
+        reply_markup = telegram.InlineKeyboardMarkup(event_btns)
+        update.message.reply_text('Elige una de las opciones:', reply_markup=reply_markup)
+        return
+    elif update.callback_query:
+        event_name = update.callback_query.data.split('.')[1]
+        user_id = update.callback_query.from_user.id
+        repository.add_to_event(event_name, user_id)
+        update.callback_query.message.reply_text("Te has unido a " + event_name)
+        id = update.callback_query.id
+        bot.answerCallbackQuery(id)
+        return
 
 def participants(bot, update):
     actText = update.message.text

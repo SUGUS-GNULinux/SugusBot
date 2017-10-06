@@ -73,6 +73,8 @@ def main():
                                           handlers.add_event))
     dispatcher.add_handler(CommandHandler('removeevent',
                                           handlers.remove_event))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.join_to_event,
+                                                pattern = '^join_event.'))
     dispatcher.add_handler(CommandHandler('jointoevent',
                                           handlers.join_to_event))
     dispatcher.add_handler(CommandHandler('participants',
