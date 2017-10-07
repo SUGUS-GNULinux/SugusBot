@@ -145,8 +145,6 @@ def empty_event(event_name):
         c.close()
     else:
         result = 'El evento ' + event_name + ' no existe'
-
-    print(result)
     return result
 
 
@@ -316,3 +314,12 @@ def update_user(id_user_telegram, user_name, force_update=False):
             finally:
                 user_cache.append(int(id_user_telegram))
                 return stop, result
+
+def add_user(user_id, user_name):
+    check_connection()
+    c = conn.cursor()
+    c.execute('INSERT INTO userTable(id_user_telegram, user_name) VALUES (?, ?)',
+              (user_id, user_name))
+    conn.commit()
+    c.close()
+    return "Registrado en el sistema '" + str(user_name) + "'"

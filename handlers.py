@@ -44,6 +44,9 @@ def help_group():
 
 # Command handlers definitions
 def start(bot, update):
+    user_id = update.effective_user.id
+    user_name = update.effective_user.username
+    send_text = repository.update_user(user_id, user_name)
     update.message.reply_text('¡Hola! Soy SugusBot, escribe "/help" para ver'
                               ' la lista de comandos disponibles.')
 
