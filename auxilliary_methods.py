@@ -52,6 +52,8 @@ def check_type_and_text_start(aText = None,
 
     return result
 
+def check_permissions(user_id, required_perm):
+    return all([check_user_permission(user_id, perm) for perm in required_perm])
 
 def show_list(header, contains, positions = None):
 

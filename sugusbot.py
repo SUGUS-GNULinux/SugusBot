@@ -71,6 +71,8 @@ def main():
                                           handlers.events))
     dispatcher.add_handler(CommandHandler('addevent',
                                           handlers.add_event))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.remove_event,
+                                                pattern = '^remove_event.'))
     dispatcher.add_handler(CommandHandler('removeevent',
                                           handlers.remove_event))
     dispatcher.add_handler(CallbackQueryHandler(handlers.join_to_event,

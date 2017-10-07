@@ -320,37 +320,27 @@ def add_event(bot, update):
 
 
 def remove_event(bot, update):
-    actText = update.message.text
-    actType = update.message.chat.type
-
-    if auxilliary_methods.check_type_and_text_start(aText=actText,
-                                                    cText='/removeevent',
-                                                    aType=actType,
-                                                    cType='private',
-                                                    cUId=update.message.
-                                                    from_user.id,
-                                                    perm_required=["admin"]):
-        rtext = actText.split(' ')
-
-        if len(rtext) < 2:
-            send_text = "Formato incorrecto. El formato debe ser:\n" + \
-                        "'/removeevent nombre-evento'"
-        else:
-            event = repository.find_event_by_name(rtext[1])
-
-            if not event:
-                send_text = "El evento no existe"
-            elif (int(event[3]) == update.message.from_user.id and
-                  not bool(repository.find_users_by_event(rtext[1])) and
-                  auxilliary_methods.check_date(event[1], "%d-%m-%Y")):
-                send_text = repository.remove_event(rtext[1])
-            else:
-                send_text = "No tienes permiso para eliminar este evento"
-
-    if send_text is not None:
-        update.message.reply_text(send_text)
-    else:
-        update.message.reply_text(help())
+    user_id = update.effective_user.id
+    if not auxilliary_methods.check_permissions(user_id, ['admin']):
+        update.message.reply_text('No tienes permiso')
+        return
+    elif update.message:
+        event_btns = []
+        for name in repository.list_events():
+            btn = telegram.InlineKeyboardButton(str(name[0]),
+                                                callback_data = 'remove_event.'+str(name[0]))
+            event_btns.append([btn])
+        reply_markup = telegram.InlineKeyboardMarkup(event_btns)
+        update.message.reply_text('Elige una de las opciones:', reply_markup=reply_markup)
+        return
+    elif update.callback_query:
+        event_name = update.callback_query.data.split('.')[1]
+        repository.remove_event(event_name)
+        send_text = 'Has eliminado el evento ' + event_name
+        update.callback_query.message.reply_text(send_text)
+        id = update.callback_query.id
+        bot.answerCallbackQuery(id)
+        return
 
 
 def join_to_event(bot, update):
