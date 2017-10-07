@@ -373,30 +373,26 @@ def join_to_event(bot, update):
         return
 
 def participants(bot, update):
-    actText = update.message.text
-    actType = update.message.chat.type
-
-    if auxilliary_methods.check_type_and_text_start(aText=actText,
-                                                    cText='/participants',
-                                                    aType=actType,
-                                                    cType='private'):
-        rtext = actText.replace('/participants', '').replace(' ', '')
-
-        if not rtext:
-            send_text = auxilliary_methods.show_list(
-                        u"Elige una de las listas:", repository.list_events())
-        else:
-            if len(repository.find_users_by_event(rtext)) == 0:
-                send_text = u"No hay nadie en {}".format(rtext)
-            else:
-                send_text = auxilliary_methods.show_list(
-                            u"Participantes en {}:".format(rtext),
-                            repository.find_users_by_event(rtext), [2])
-
-    if send_text is not None:
-        update.message.reply_text(send_text)
-    else:
-        update.message.reply_text(help())
+    if update.message:
+        event_btns = []
+        for name in repository.list_events():
+            btn = telegram.InlineKeyboardButton(str(name[0]),
+                                                callback_data = 'participants.'+str(name[0]))
+            event_btns.append([btn])
+        reply_markup = telegram.InlineKeyboardMarkup(event_btns)
+        update.message.reply_text('Elige una de los eventos:', reply_markup=reply_markup)
+        return
+    elif update.callback_query:
+        event_name = update.callback_query.data.split('.')[1]
+        user_id = update.callback_query.from_user.id
+        repository.add_to_event(event_name, user_id)
+        send_text = auxilliary_methods.show_list(
+            'Participantes en ' + event_name,
+            repository.find_users_by_event(event_name), [2])
+        update.callback_query.message.reply_text(send_text)
+        id = update.callback_query.id
+        bot.answerCallbackQuery(id)
+        return
 
 
 def leave_event(bot, update):
