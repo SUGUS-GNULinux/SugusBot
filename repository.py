@@ -3,6 +3,7 @@
 
 import sqlite3
 from datetime import datetime
+import logging
 
 conn = None
 user_cache = list()
@@ -130,7 +131,7 @@ def remove_from_event(event_name, telegram_user_id):
 # el evento solo lo puede vaciar un usuario con privilegios
 def empty_event(event_name):
     check_connection()
-    print("Vamos a proceder a vaciar el evento: " + event_name)
+    logging.info("Vamos a proceder a vaciar el evento: " + event_name)
     event = find_event_by_name(event_name=event_name)
 
     if event:

@@ -7,6 +7,9 @@ import telegram
 from repository import find_user_by_telegram_user_id, check_user_permission
 from emoji import emojize
 from datetime import datetime
+import time
+import schedule
+import threading
 
 
 def get_who():
@@ -91,3 +94,19 @@ def extract_user_from_update(update):
         user = update.message.from_user
 
     return user
+
+
+def init_scheduler():
+    cease_continuous_run = threading.Event()
+
+    class ScheduleThread(threading.Thread):
+        @classmethod
+        def run(cls):
+            while not cease_continuous_run.is_set():
+                schedule.run_pending()
+                time.sleep(1)
+
+    continuous_thread = ScheduleThread()
+    continuous_thread.start()
+
+    return cease_continuous_run

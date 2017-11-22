@@ -4,10 +4,14 @@
 import logging
 import repository
 import handlers
+import schedule
 
 from configparser import ConfigParser
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters,\
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, \
     CallbackQueryHandler
+
+from auxilliary_methods import init_scheduler
+from repository import empty_event
 
 # Init logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s '
@@ -91,6 +95,10 @@ def main():
     # Error handler, for logging purposes
     dispatcher.add_error_handler(handlers.error)
 
+    # Clean event comida every day
+    schedule.every().day.at("0:30").do(empty_event, 'comida').tag('empty_event comida')
+    init_scheduler()
+
     # Start the bot
     updater.start_polling()
 
@@ -98,6 +106,7 @@ def main():
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
+
 
 if __name__ == '__main__':
     main()
