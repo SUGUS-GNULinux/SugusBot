@@ -5,6 +5,7 @@ import repository
 import telegram
 from emoji import emojize
 import auxilliary_methods
+import logging
 
 """
 This module contains the functions that handlers execute.
@@ -99,7 +100,7 @@ def who(bot, update):
 
 
 def como(bot, update):
-    user_id = update.callback_query.from_user.id
+    user_id = auxilliary_methods.extract_user_from_update(update).id
     send_text = repository.add_to_event('comida', user_id)
     update.callback_query.message.reply_text(send_text)
     id = update.callback_query.id
@@ -107,7 +108,7 @@ def como(bot, update):
 
 
 def no_como(bot, update):
-    user_id = update.callback_query.from_user.id
+    user_id = auxilliary_methods.extract_user_from_update(update).id
     send_text = repository.remove_from_event('comida', user_id)
     update.callback_query.message.reply_text(send_text)
     id = update.callback_query.id
@@ -409,4 +410,4 @@ def leave_event(bot, update):
 
 
 def error(bot, update, error):
-    logger.warn('Update "%s" caused error "%s"' % (update, error))
+    logging.warn('Update "%s" caused error "%s"' % (update, error))

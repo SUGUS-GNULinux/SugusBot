@@ -188,3 +188,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+bin/
+include/
+pip-selfcheck.json
+

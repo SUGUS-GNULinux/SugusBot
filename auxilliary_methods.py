@@ -83,3 +83,11 @@ def check_date(date):
     except ValueError:
         res = False
     return res
+
+def extract_user_from_update(update):
+    try:
+        user = update.callback_query.from_user
+    except AttributeError:
+        user = update.message.from_user
+
+    return user

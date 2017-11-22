@@ -1,5 +1,5 @@
-pyquery
-python-telegram-bot
+pyquery==1.3.0
+python-telegram-bot==8.1.1
 cssselect
-lxml
-emoji
+lxml==4.1.1
+emoji==0.4.5
