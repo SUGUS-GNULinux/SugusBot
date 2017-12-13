@@ -48,7 +48,7 @@ def start(bot, update):
     user_id = update.effective_user.id
     user_name = update.effective_user.username
     send_text = repository.update_user(user_id, user_name)
-    update.message.reply_text('¡Hola! Soy SugusBot, escribe "/help" para ver'
+    update.message.reply_text('¡Hola! Soy @SugusBot, escribe "/help" para ver'
                               ' la lista de comandos disponibles.')
 
 
@@ -65,7 +65,6 @@ def help(bot, update):
         update.callback_query.message.reply_text(send_text)
         id = update.callback_query.id
         bot.answerCallbackQuery(id)
-
 
 def who(bot, update):
     actText = update.message.text
@@ -101,6 +100,8 @@ def who(bot, update):
 
 def como(bot, update):
     user_id = auxilliary_methods.extract_user_from_update(update).id
+    user_name = update.effective_user.username
+    repository.update_user(user_id, user_name)
     send_text = repository.add_to_event('comida', user_id)
     update.callback_query.message.reply_text(send_text)
     id = update.callback_query.id
@@ -360,6 +361,8 @@ def join_to_event(bot, update):
     elif update.callback_query:
         event_name = update.callback_query.data.split('.')[1]
         user_id = update.callback_query.from_user.id
+        user_name = update.effective_user.username
+        repository.update_user(user_id, user_name)
         repository.add_to_event(event_name, user_id)
         update.callback_query.message.reply_text("Te has unido a " + event_name)
         id = update.callback_query.id
